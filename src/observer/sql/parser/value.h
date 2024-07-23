@@ -20,6 +20,19 @@ See the Mulan PSL v2 for more details. */
  * @brief 属性的类型
  *
  */
+class date
+{
+public:
+  date(int yy, int mm, int dd) : y(yy), m(mm), d(dd){};
+  ~date() = default;
+private: 
+  int y;
+  int m;
+  int d;
+};
+date s_to_date(std::string str1);
+
+
 enum class AttrType
 {
   UNDEFINED,

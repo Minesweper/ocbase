@@ -17,14 +17,30 @@ See the Mulan PSL v2 for more details. */
 #include "common/lang/string.h"
 #include "common/log/log.h"
 #include <sstream>
+#include <string>
 
-const char *ATTR_TYPE_NAME[] = {"undefined", "chars", "ints", "floats", "booleans"};
+date s_to_date(std::string str1) {
+  int pos = str1.find('-');
+  std::string a1 = str1.substr(0, pos);
+  std::string str2 = str1.substr(pos + 1,str1.length());
+  pos = str2.find('-');
+  std::string a2 = str2.substr(0, pos);
+  std::string a3 = str2.substr(pos + 1, str2.length());
+  int yy  = atoi(a1.c_str());
+  int mm  = atoi(a2.c_str());
+  int dd  = atoi(a3.c_str());
+
+}
+
+const char *ATTR_TYPE_NAME[] = {"undefined", "chars", "ints", "floats", "booleans", "dates"};
 
 const char *attr_type_to_string(AttrType type)
 {
   if (type >= AttrType::UNDEFINED && type <= AttrType::FLOATS) {
     return ATTR_TYPE_NAME[static_cast<int>(type)];
   }
+  if (type == AttrType::DATES)
+    return ATTR_TYPE_NAME[static_cast<int>(type)];
   return "unknown";
 }
 AttrType attr_type_from_string(const char *s)
