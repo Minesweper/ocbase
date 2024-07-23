@@ -4,6 +4,9 @@
 ./deps/jsoncpp
 ./deps/benchmark
 .vscode
+.vs
+./src/.vs
+./src/observer/.vs
 !.vscode/tasks.json
 !.vscode/launch.json
 .VSCodeCounter/*
