@@ -29,7 +29,33 @@ date s_to_date(std::string str1) {
   int yy  = atoi(a1.c_str());
   int mm  = atoi(a2.c_str());
   int dd  = atoi(a3.c_str());
+  if (yy >= 2039 || yy < 1970)
+    return date(0, 0, 0);
+  if (mm > 12 || mm < 1)
+    return date(0, 0, 0);
+  if (dd > 31 || dd < 1)
+    return date(0, 0, 0);
+  if (yy == 2038 && mm > 2)
+    return date(0, 0, 0);
 
+  if ((!(mm % 2)) && (mm < 7)) {
+    if (mm == 2) {
+      if (yy % 4 == 0) {
+        if (dd > 29)
+          return date(0, 0, 0);
+      } else {
+        if (dd > 28)
+          return date(0, 0, 0);
+      }
+    } else {
+      if (dd > 30)
+        return date(0, 0, 0);
+    }
+  } else if ((mm % 2) && (mm > 8)) {
+    if (dd > 30)
+      return date(0, 0, 0);
+  }
+  return date(yy, mm, dd);
 }
 
 const char *ATTR_TYPE_NAME[] = {"undefined", "chars", "ints", "floats", "booleans", "dates"};
