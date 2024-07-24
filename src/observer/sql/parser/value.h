@@ -29,6 +29,16 @@ public:
   int getmonth();
   int getday();
   std::string date_to_s();
+  const bool  operator ==(const date &other) { 
+      return ((y == other.y) && (m == other.m) && (d == other.d));
+  }
+  const bool  operator<(const date &other)
+  {return (y < other.y || (y == other.y && m < other.y) || (y==other.y&&m==other.m&&d<other.d);
+  }
+  const bool operator>(const date &other)
+  {
+    return (y > other.y || (y == other.y && m > other.m) || (y == other.y && m == other.m && d > other.d));
+  }
 
 private: 
   int y;

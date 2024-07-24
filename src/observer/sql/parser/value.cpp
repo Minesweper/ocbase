@@ -197,6 +197,10 @@ const char *Value::data() const
     case AttrType::CHARS: {
       return str_value_.c_str();
     } break;
+    case AttrType::DATES: { 
+        return date_value_.date_to_s().c_str();
+      break;
+    }
     default: {
       return (const char *)&num_value_;
     } break;
@@ -218,6 +222,9 @@ std::string Value::to_string() const
     } break;
     case AttrType::CHARS: {
       os << str_value_;
+    } break;
+    case AttrType::DATES: {
+      os << date_value_.date_to_s();
     } break;
     default: {
       LOG_WARN("unsupported attr type: %d", attr_type_);
@@ -244,6 +251,8 @@ int Value::compare(const Value &other) const
       } break;
       case AttrType::BOOLEANS: {
         return common::compare_int((void *)&this->num_value_.bool_value_, (void *)&other.num_value_.bool_value_);
+      } break;
+      case AttrType::DATES: {
       }
       default: {
         LOG_WARN("unsupported type: %d", this->attr_type_);
@@ -280,6 +289,10 @@ int Value::get_int() const
     case AttrType::BOOLEANS: {
       return (int)(num_value_.bool_value_);
     }
+    case AttrType::DATES: {
+      LOG_TRACE("failed to convert date to number.");
+      return 0;
+    }
     default: {
       LOG_WARN("unknown data type. type=%d", attr_type_);
       return 0;
@@ -307,6 +320,10 @@ float Value::get_float() const
     } break;
     case AttrType::BOOLEANS: {
       return float(num_value_.bool_value_);
+    } break;
+    case AttrType::DATES: {
+      LOG_TRACE("failed to convert date to float.");
+      return 0.0;
     } break;
     default: {
       LOG_WARN("unknown data type. type=%d", attr_type_);
@@ -348,6 +365,10 @@ bool Value::get_boolean() const
     } break;
     case AttrType::BOOLEANS: {
       return num_value_.bool_value_;
+    } break;
+    case AttrType::DATES: {
+      LOG_TRACE("failed to convert date to boolean.");
+      return false;
     } break;
     default: {
       LOG_WARN("unknown data type. type=%d", attr_type_);
