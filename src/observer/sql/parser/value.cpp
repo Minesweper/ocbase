@@ -19,7 +19,19 @@ See the Mulan PSL v2 for more details. */
 #include <sstream>
 #include <string>
 
-date s_to_date(std::string str1) {
+int  date::getday() { return d; }
+int  date::getmonth() { return m; }
+int  date::getyear() { return y; }
+std::string date::date_to_s() { 
+    std::string tp1(itoa(y));
+  std::string tp2(itoa(m));
+  std::string tp3(itoa(d));
+  std::string ans = tp1 + "-" + tp2 + "-" + tp3;
+  return ans;
+}
+
+date s_to_date(std::string str1)
+  {
   int pos = str1.find('-');
   std::string a1 = str1.substr(0, pos);
   std::string str2 = str1.substr(pos + 1,str1.length());
@@ -105,6 +117,13 @@ void Value::set_data(char *data, int length)
       num_value_.bool_value_ = *(int *)data != 0;
       length_                = length;
     } break;
+    case AttrType::DATES: {
+      date tp = s_to_date(data);
+      if (tp.getday() == 0)
+        LOG_WARN("error date!");
+      date_value_ = tp;
+      length_     = length;
+    } break;
     default: {
       LOG_WARN("unknown data type: %d", attr_type_);
     } break;
@@ -140,9 +159,14 @@ void Value::set_string(const char *s, int len /*= 0*/)
   }
   length_ = str_value_.length();
 }
-
-void Value::set_value(const Value &value)
+void Value::set_date(const date &dt)
 {
+  attr_type_  = AttrType::DATES;
+  date_value_ = dt;
+  length_     = sizeof(date);
+}
+void Value::set_value(const Value &value)
+  {
   switch (value.attr_type_) {
     case AttrType::INTS: {
       set_int(value.get_int());
@@ -155,6 +179,11 @@ void Value::set_value(const Value &value)
     } break;
     case AttrType::BOOLEANS: {
       set_boolean(value.get_boolean());
+    } break;
+    case AttrType::DATES: {
+      if (value.get_date().getday() == 0)
+        ASSERT(false,"got an error date");
+      else set_date(value.get_date());
     } break;
     case AttrType::UNDEFINED: {
       ASSERT(false, "got an invalid value type");

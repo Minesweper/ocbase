@@ -25,6 +25,11 @@ class date
 public:
   date(int yy, int mm, int dd) : y(yy), m(mm), d(dd){};
   ~date() = default;
+  int getyear();
+  int getmonth();
+  int getday();
+  std::string date_to_s();
+
 private: 
   int y;
   int m;
@@ -73,7 +78,7 @@ public:
   void set_boolean(bool val);
   void set_string(const char *s, int len = 0);
   void set_value(const Value &value);
-
+  void        set_date(const date &dt);
   std::string to_string() const;
 
   int compare(const Value &other) const;
@@ -92,6 +97,7 @@ public:
   float       get_float() const;
   std::string get_string() const;
   bool        get_boolean() const;
+  date        get_date() const;
 
 private:
   AttrType attr_type_ = AttrType::UNDEFINED;
@@ -104,4 +110,5 @@ private:
     bool  bool_value_;
   } num_value_;
   std::string str_value_;
+  date        date_value_;
 };
