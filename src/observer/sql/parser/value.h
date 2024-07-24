@@ -32,8 +32,8 @@ public:
   const bool  operator ==(const date &other) { 
       return ((y == other.y) && (m == other.m) && (d == other.d));
   }
-  const bool  operator<(const date &other)
-  {return (y < other.y || (y == other.y && m < other.y) || (y==other.y&&m==other.m&&d<other.d);
+  const bool  operator<(const date &other){
+    return (y < other.y || (y == other.y && m < other.y) || (y == other.y && m == other.m && d < other.d));
   }
   const bool operator>(const date &other)
   {
