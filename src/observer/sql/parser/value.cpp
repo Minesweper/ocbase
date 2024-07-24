@@ -253,7 +253,13 @@ int Value::compare(const Value &other) const
         return common::compare_int((void *)&this->num_value_.bool_value_, (void *)&other.num_value_.bool_value_);
       } break;
       case AttrType::DATES: {
-      }
+        if (this->date_value_ > other.date_value_)
+          return 1;
+        else if (this->date_value_ == other.date_value_)
+          return 0;
+        else
+          return -1;
+      } break;
       default: {
         LOG_WARN("unsupported type: %d", this->attr_type_);
       }
