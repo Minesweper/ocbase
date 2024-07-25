@@ -77,6 +77,7 @@ public:
   explicit Value(float val);
   explicit Value(bool val);
   explicit Value(const char *s, int len = 0);
+  explicit Value(date dt);
 
   Value(const Value &other)            = default;
   Value &operator=(const Value &other) = default;
