@@ -24,6 +24,7 @@ class date
 {
 public:
   date(int yy, int mm, int dd) : y(yy), m(mm), d(dd){};
+  date(const date &other);
   ~date() = default;
   int getyear();
   int getmonth();

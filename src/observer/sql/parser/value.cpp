@@ -29,7 +29,12 @@ std::string date::date_to_s() {
   std::string ans = tp1 + "-" + tp2 + "-" + tp3;
   return ans;
 }
-
+date::date(const date &ot)
+{
+  y = ot.y;
+  m = ot.m;
+  d = ot.d;
+}
 date s_to_date(std::string str1)
   {
   int pos = str1.find('-');
