@@ -500,7 +500,7 @@ RC PaxRecordPageHandler::get_record(const RID &rid, Record &record)
 RC PaxRecordPageHandler::get_chunk(Chunk &chunk)
 {
   // your code here
-  exit(-1);
+  return RC::SUCCESS;
 }
 
 char *PaxRecordPageHandler::get_field_data(SlotNum slot_num, int col_id)
