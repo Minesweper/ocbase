@@ -124,12 +124,10 @@ struct InnerJoinSqlNode
 
 struct SelectSqlNode
 {
-  std::vector<Expression *>     project_exprs;                ///< attributes in select clause
-  std::vector<InnerJoinSqlNode> relations;                    ///< 查询的表
-  Expression                   *conditions = nullptr;         ///< 查询条件
-  std::vector<OrderBySqlNode>   orderbys;                     ///< attributes in order clause
-  std::vector<Expression *>     groupby_exprs;                ///< groupby
-  Expression                   *having_conditions = nullptr;  ///< groupby having
+  std::vector<std::unique_ptr<Expression>> expressions;  ///< 查询的表达式
+  std::vector<std::string>                 relations;    ///< 查询的表
+  std::vector<ConditionSqlNode>            conditions;   ///< 查询条件，使用AND串联起来多个条件
+  std::vector<std::unique_ptr<Expression>> group_by;     ///< group by clause
 };
 
 /**
@@ -138,9 +136,7 @@ struct SelectSqlNode
  */
 struct CalcSqlNode
 {
-  std::vector<Expression *> expressions;  ///< calc clause
-
-  ~CalcSqlNode();
+  std::vector<std::unique_ptr<Expression>> expressions;  ///< calc clause
 };
 
 /**
@@ -150,9 +146,8 @@ struct CalcSqlNode
  */
 struct InsertSqlNode
 {
-  std::string                     relation_name;  ///< Relation to insert into
-  std::vector<std::string>        attrs_name;     ///< 要插入的目标列
-  std::vector<std::vector<Value>> values;         ///< 要插入的值
+  std::string        relation_name;  ///< Relation to insert into
+  std::vector<Value> values;         ///< 要插入的值
 };
 
 /**
@@ -161,8 +156,8 @@ struct InsertSqlNode
  */
 struct DeleteSqlNode
 {
-  std::string relation_name;  ///< Relation to delete from
-  Expression *conditions = nullptr;
+  std::string                   relation_name;  ///< Relation to delete from
+  std::vector<ConditionSqlNode> conditions;
 };
 
 /**
@@ -179,7 +174,7 @@ struct UpdateSqlNode
   std::string               relation_name;    ///< Relation to update
   std::vector<std::string>  attribute_names;  ///< 更新的字段，仅支持多个字段
   std::vector<Expression *> values;           ///< 更新的值，仅支持多个字段
-  Expression               *conditions = nullptr;
+  std::vector<ConditionSqlNode> conditions;
 };
 
 /**
@@ -204,9 +199,11 @@ struct AttrInfoSqlNode
  */
 struct CreateTableSqlNode
 {
-  std::string                  relation_name;  ///< Relation name
-  std::vector<AttrInfoSqlNode> attr_infos;     ///< attributes
+  std::string                  relation_name;   ///< Relation name
+  std::vector<AttrInfoSqlNode> attr_infos;      ///< attributes
+  std::string                  storage_format;  ///< storage format
 };
+
 
 /**
  * @brief 描述一个drop table语句

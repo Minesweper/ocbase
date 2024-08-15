@@ -1,4 +1,3 @@
-/* A Bison parser, made by GNU Bison 3.5.1.  */
 
 /* Bison implementation for Yacc-like parsers in C
 
@@ -45,10 +44,10 @@
    are private implementation details.  Do not rely on them.  */
 
 /* Identify Bison output.  */
-#define YYBISON 1
+#define YYBISON 30802
 
 /* Bison version.  */
-#define YYBISON_VERSION "3.5.1"
+#define YYBISON_VERSION "3.8.2"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
