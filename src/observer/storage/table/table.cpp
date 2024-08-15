@@ -127,6 +127,52 @@ RC Table::create(Db *db, int32_t table_id, const char *path, const char *name, c
   return rc;
 }
 
+RC Table::remove(const char *name){
+  if (common::is_blank(name)) {
+    LOG_WARN("Name cannot be empty");
+    return RC::INVALID_ARGUMENT;
+  }
+
+  // remove the relevant index files
+  for (auto idx : indexes_) {
+    std::string index_file = table_index_file(base_dir_.c_str(), name, idx->index_meta().name());
+    delete idx;  // the file will be closed in dtor
+    if (0 != ::unlink(index_file.c_str())) {
+      LOG_ERROR("Delete index file failed.");
+      return RC::IOERR_ACCESS;
+    }
+  }
+  indexes_.clear();
+
+  // close the data file and clean relevant resources
+  assert(nullptr != record_handler_);
+  record_handler_->close();
+  delete record_handler_;
+  record_handler_ = nullptr;
+
+  std::string data_file = table_data_file(base_dir_.c_str(), name);
+  assert(nullptr != data_buffer_pool_);
+  BufferPoolManager::instance().close_file(data_file.c_str());
+  // NOTE: after bpm.close_file, the dbp has been released
+  data_buffer_pool_ = nullptr;
+
+  // remove the data file
+  if (0 != ::unlink(data_file.c_str())) {
+    LOG_ERROR("Delete data file failed.");
+    return RC::IOERR_ACCESS;
+  }
+
+  // remove the meta file
+  std::string meta_file = table_meta_file(base_dir_.c_str(), name);
+  if (0 != ::unlink(meta_file.c_str())) {
+    LOG_ERROR("Delete data file failed.");
+    return RC::IOERR_ACCESS;
+  }
+
+  return RC::SUCCESS;
+  // after we invoke the func, the dtor do nothing.
+}
+
 RC Table::open(Db *db, const char *meta_file, const char *base_dir)
 {
   // 加载元数据文件
