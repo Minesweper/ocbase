@@ -376,7 +376,7 @@ typedef int   yytype_uint16;
 #define YYPTRDIFF_MAXIMUM LONG_MAX
 #endif
 #endif
-#line
+
 #ifndef YYSIZE_T
 #ifdef __SIZE_TYPE__
 #define YYSIZE_T __SIZE_TYPE__
