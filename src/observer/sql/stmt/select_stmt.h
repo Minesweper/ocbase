@@ -16,6 +16,7 @@ See the Mulan PSL v2 for more details. */
 
 #include <memory>
 #include <vector>
+#include <unordered_set>
 
 #include "common/rc.h"
 #include "sql/stmt/stmt.h"
@@ -33,6 +34,29 @@ class Table;
 class SelectStmt : public Stmt
 {
 public:
+  class Jointables
+  {
+  public:
+    Jointables() = default;
+    ~Jointables() = default;
+    Jointables(Jointables &&other)
+    {
+      join_tables_.swap(other.join_tables_);
+      on_conds_.swap(other.on_conds_);
+    }
+
+    void push_join_table(Table *tb, FilterStmt *fi)
+    {
+      join_tables_.emplace_back(tb);
+      on_conds_.emplace_back(fi);
+    }
+    const std::vector<Table *>      &join_tables() const { return join_tables_; }
+    const std::vector<FilterStmt *> &on_conds() const { return on_conds_; }
+  private:
+    std::vector<Table *> join_tables_;
+    std::vector<FilterStmt *> on_conds_;
+  };
+
   SelectStmt() = default;
   ~SelectStmt() override;
 
@@ -44,13 +68,18 @@ public:
 public:
   const std::vector<Table *> &tables() const { return tables_; }
   FilterStmt                 *filter_stmt() const { return filter_stmt_; }
-
+  const std::vector<Jointables>            &join_tables() const { return join_tables_; }
   std::vector<std::unique_ptr<Expression>> &query_expressions() { return query_expressions_; }
   std::vector<std::unique_ptr<Expression>> &group_by() { return group_by_; }
+  FilterStmt                               *having_stmt() const { return having_stmt_; }
+
 
 private:
+  std::vector<std::unique_ptr<Expression>> projects_;
+  std::vector<JoinTables>                  join_tables_;
   std::vector<std::unique_ptr<Expression>> query_expressions_;
   std::vector<Table *>                     tables_;
   FilterStmt                              *filter_stmt_ = nullptr;
   std::vector<std::unique_ptr<Expression>> group_by_;
+  FilterStmt                              *having_stmt_ = 0;
 };

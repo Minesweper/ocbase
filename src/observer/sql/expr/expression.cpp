@@ -650,7 +650,6 @@ RC SubQueryExpr::generate_select_stmt(Db *db, const std::unordered_map<std::stri
 RC SubQueryExpr::generate_logical_oper()
 {
   if (RC rc = LogicalPlanGenerator::create(stmt_.get(), logical_oper_); OB_FAIL(rc)) {
-    LOG_WARN("subquery logical oper generate failed. return %s", strrc(rc));
     return rc;
   }
   return RC::SUCCESS;
