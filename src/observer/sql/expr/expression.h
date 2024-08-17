@@ -17,7 +17,8 @@ See the Mulan PSL v2 for more details. */
 #include <memory>
 #include <string>
 #include <string.h>
-
+#include <unordered_map>
+#include <map>
 #include "sql/parser/value.h"
 #include "storage/field/field.h"
 #include "sql/expr/aggregator.h"
@@ -52,6 +53,8 @@ enum class ExprType
   AGGREGATION,  ///< 聚合运算
   SUBQUERY,
   EXPRLIST,
+  AGGRFUNCTION,
+  SYSFUNCTION,
 };
 
 /**
@@ -189,8 +192,9 @@ class FieldExpr : public Expression
 {
 public:
   FieldExpr() = default;
-  FieldExpr(const Table *table, const FieldMeta *field) : field_(table, field) {}
-  FieldExpr(const Field &field) : field_(field) {}
+  FieldExpr(const Table *table, const FieldMeta *field) : field_(table, field),table_name_(table->name()),field_name_(field->name()){}
+  FieldExpr(const Field &field) : field_(field),table_name_(field.table_name()),field_name_(field.field_name()) {}
+  FieldExpr(const std::string &t1, const std::string t2) : table_name_(t1), field_name_(t2) {}
 
   virtual ~FieldExpr() = default;
 
@@ -207,12 +211,21 @@ public:
   const char *table_name() const { return field_.table_name(); }
   const char *field_name() const { return field_.field_name(); }
 
+  const std::string &get_table_name() const { return table_name_; }
+  const std::string &get_field_name() const { return field_name_; }
+
   RC get_column(Chunk &chunk, Column &column) override;
 
   RC get_value(const Tuple &tuple, Value &value) const override;
 
+  FieldMeta get_field_meta() const { return *field_.meta(); }
+
 private:
   Field field_;
+  const std::string table_name_;
+  const std::string field_name_;
+  int index = -1;
+  bool is_first = true;
 };
 
 /**
@@ -529,6 +542,64 @@ private:
   std::unique_ptr<PhysicalOperator> physical_oper_;
 };
 
+class SysFuncExpr : public Expression
+{
+public:
+  SysFuncExpr() = default;
+  SysFuncExpr(SysFuncType func_type, std::vector<Expression *> &params) : func_type_(func_type)
+  {
+    for (auto expr : params) {
+      params_.emplace_back(expr);
+    }
+  }
+  SysFuncExpr(SysFuncType func_type, std::vector<std::unique_ptr<Expression>> params)
+      : func_type_(func_type), params_(std::move(params))
+  {}
+  virtual ~SysFuncExpr() = default;
+
+  AttrType value_type() const override
+  {
+    switch (func_type_) {
+      case SYS_FUNC_LENGTH: return INTS; break;
+      case SYS_FUNC_ROUND: return FLOATS; break;
+      case SYS_FUNC_DATE_FORMAT: return CHARS; break;
+      default: break;
+    }
+    return UNDEFINED;
+  }
+  ExprType type() const override { return ExprType::SYSFUNCTION; }
+
+  RC get_func_length_value(const Tuple &tuple, Value &value) const;
+
+  RC get_func_round_value(const Tuple &tuple, Value &value) const;
+
+  RC get_func_data_format_value(const Tuple &tuple, Value &value) const;
+
+  RC get_value(const Tuple &tuple, Value &value) const override
+  {
+    RC rc = RC::SUCCESS;
+    switch (func_type_) {
+      case SYS_FUNC_LENGTH: {
+        rc = get_func_length_value(tuple, value);
+        break;
+      }
+      case SYS_FUNC_ROUND: {
+        rc = get_func_round_value(tuple, value);
+        break;
+      }
+      case SYS_FUNC_DATE_FORMAT: {
+        rc = get_func_data_format_value(tuple, value);
+        break;
+      }
+      default: break;
+    }
+    return rc;
+  }
+
+private:
+  SysFuncType                              func_type_;
+  std::vector<std::unique_ptr<Expression>> params_;
+};
 
 static bool exp2value(Expression *exp, Value &value)
 {

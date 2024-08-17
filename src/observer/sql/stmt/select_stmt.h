@@ -17,13 +17,17 @@ See the Mulan PSL v2 for more details. */
 #include <memory>
 #include <vector>
 #include <unordered_set>
-
+#include <map>
+#include <unordered_map>
 #include "common/rc.h"
 #include "sql/stmt/stmt.h"
 #include "storage/field/field.h"
 
 class FieldMeta;
 class FilterStmt;
+class FilterStmt;
+class GroupByStmt;
+class OrderByStmt;
 class Db;
 class Table;
 
@@ -34,52 +38,60 @@ class Table;
 class SelectStmt : public Stmt
 {
 public:
-  class Jointables
+  class JoinTables
   {
   public:
-    Jointables() = default;
-    ~Jointables() = default;
-    Jointables(Jointables &&other)
+    JoinTables()  = default;
+    ~JoinTables() = default;
+    JoinTables(JoinTables &&other)
     {
       join_tables_.swap(other.join_tables_);
       on_conds_.swap(other.on_conds_);
     }
-
-    void push_join_table(Table *tb, FilterStmt *fi)
+    void push_join_table(Table *table, FilterStmt *fu)
     {
-      join_tables_.emplace_back(tb);
-      on_conds_.emplace_back(fi);
+      join_tables_.emplace_back(table);
+      on_conds_.emplace_back(fu);
     }
     const std::vector<Table *>      &join_tables() const { return join_tables_; }
     const std::vector<FilterStmt *> &on_conds() const { return on_conds_; }
+
   private:
-    std::vector<Table *> join_tables_;
+    std::vector<Table *>      join_tables_;
     std::vector<FilterStmt *> on_conds_;
   };
 
+public:
   SelectStmt() = default;
   ~SelectStmt() override;
 
   StmtType type() const override { return StmtType::SELECT; }
 
 public:
-  static RC create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt);
+  // select_sql.project exprs would be clear
+  static RC create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
+      const std::unordered_map<std::string, Table *> &parent_table_map = {});
 
 public:
-  const std::vector<Table *> &tables() const { return tables_; }
-  FilterStmt                 *filter_stmt() const { return filter_stmt_; }
-  const std::vector<Jointables>            &join_tables() const { return join_tables_; }
-  std::vector<std::unique_ptr<Expression>> &query_expressions() { return query_expressions_; }
-  std::vector<std::unique_ptr<Expression>> &group_by() { return group_by_; }
+  const std::vector<JoinTables>            &join_tables() const { return join_tables_; }
+  FilterStmt                               *filter_stmt() const { return filter_stmt_; }
   FilterStmt                               *having_stmt() const { return having_stmt_; }
+  GroupByStmt                              *groupby_stmt() const { return groupby_stmt_; }
+  OrderByStmt                              *orderby_stmt() const { return orderby_stmt_; }
+  std::vector<std::unique_ptr<Expression>> &projects() { return projects_; }
 
+private:
+  static RC process_from_clause(Db *db, std::vector<Table *> &tables,
+      std::unordered_map<std::string, std::string> &table_alias_map,
+      std::unordered_map<std::string, Table *> &table_map, std::vector<InnerJoinSqlNode> &from_relations,
+      std::vector<JoinTables> &join_tables);
 
 private:
   std::vector<std::unique_ptr<Expression>> projects_;
   std::vector<JoinTables>                  join_tables_;
-  std::vector<std::unique_ptr<Expression>> query_expressions_;
-  std::vector<Table *>                     tables_;
-  FilterStmt                              *filter_stmt_ = nullptr;
-  std::vector<std::unique_ptr<Expression>> group_by_;
-  FilterStmt                              *having_stmt_ = 0;
+
+  FilterStmt  *filter_stmt_  = nullptr;
+  GroupByStmt *groupby_stmt_ = nullptr;
+  OrderByStmt *orderby_stmt_ = nullptr;
+  FilterStmt  *having_stmt_  = nullptr;
 };
