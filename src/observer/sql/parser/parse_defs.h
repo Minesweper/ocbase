@@ -158,7 +158,7 @@ struct InsertSqlNode
 struct DeleteSqlNode
 {
   std::string                   relation_name;  ///< Relation to delete from
-  std::vector<ConditionSqlNode> conditions;
+  Expression *conditions = 0;
 };
 
 /**

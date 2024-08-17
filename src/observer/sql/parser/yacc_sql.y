@@ -3,8 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string>
-#include <cstring>
+#include <string.h>
 #include <algorithm>
 
 #include "common/log/log.h"
