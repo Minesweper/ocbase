@@ -21,6 +21,21 @@ See the Mulan PSL v2 for more details. */
 
 using namespace std;
 
+
+std::string month_name[] = {"",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December"};
+
 RC FieldExpr::get_value(const Tuple &tuple, Value &value) const
 {
   return tuple.find_cell(TupleCellSpec(table_name(), field_name()), value);
@@ -691,3 +706,168 @@ ExprType SubQueryExpr::type() const { return ExprType::SUBQUERY; }
 AttrType SubQueryExpr::value_type() const { return UNDEFINED; }
 
 std::unique_ptr<Expression> SubQueryExpr::deep_copy() const { return {}; }
+
+RC SysFuncExpr::get_func_length_value(const Tuple &tuple, Value &value) const
+{
+  auto &param_expr = params_.front();
+  Value param_cell;
+  param_expr->get_value(tuple, param_cell);
+  // unsupported not chars
+  if (param_cell.attr_type() != CHARS) {
+    return RC::INTERNAL;
+  }
+  int result_length = strlen(param_cell.data());
+  value.set_int(result_length);
+  return RC::SUCCESS;
+}
+
+RC SysFuncExpr::get_func_round_value(const Tuple &tuple, Value &value) const
+{
+  if (params_.size() > 1) {
+    auto &param_expr           = params_[0];
+    auto &param_expr_precision = params_[1];
+    Value param_expr_cell;
+    Value param_expr_precision_cell;
+    param_expr->get_value(tuple, param_expr_cell);
+    param_expr_precision->get_value(tuple, param_expr_precision_cell);
+    if (param_expr_cell.attr_type() != FLOATS && param_expr_cell.attr_type() != DOUBLES) {
+      return RC::INTERNAL;
+    }
+    if (param_expr_precision_cell.attr_type() != INTS) {
+      return RC::INTERNAL;
+    }
+    float cell_float     = param_expr_cell.get_float();
+    int   cell_precision = param_expr_precision_cell.get_int();
+    auto  inner_round    = [](double d, int precision) {
+      // std::cout << "Before: " << std::setprecision(12) << f << std::endl;
+      std::stringstream ss;
+      ss << std::fixed << std::setprecision(precision) << d;
+      ss >> d;
+      // std::cout << "After: " << std::setprecision(12) << f << std::endl;
+      return d;
+    };
+    *(uint32_t *)&cell_float += 1;
+    cell_float = inner_round(cell_float, cell_precision);
+    // std::cout << cell_float << std::endl;
+    value.set_float(cell_float);
+  } else {
+    auto &param_expr = *params_.begin();
+    Value param_expr_cell;
+    param_expr->get_value(tuple, param_expr_cell);
+    if (param_expr_cell.attr_type() != FLOATS && param_expr_cell.attr_type() != DOUBLES) {
+      return RC::INTERNAL;
+    }
+    float             cell_float = param_expr_cell.get_float();
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(0) << cell_float;
+    ss >> cell_float;
+    value.set_float(cell_float);
+  }
+  return RC::SUCCESS;
+}
+RC SysFuncExpr::get_func_data_format_value(const Tuple &tuple, Value &value) const
+{
+  auto &date_expr   = params_[0];
+  auto &format_expr = params_[1];
+  Value date_expr_cell;
+  Value format_expr_cell;
+  date_expr->get_value(tuple, date_expr_cell);
+  format_expr->get_value(tuple, format_expr_cell);
+  if (date_expr_cell.attr_type() != DATES) {
+    return RC::INTERNAL;
+  }
+  if (format_expr_cell.attr_type() != CHARS) {
+    return RC::INTERNAL;
+  }
+  int         cell_date         = date_expr_cell.get_int();
+  const char *cell_format_chars = format_expr_cell.data();
+
+  std::string result_date_str;
+  int         year  = cell_date / 10000;
+  int         month = (cell_date / 100) % 100;
+  int         day   = cell_date % 100;
+  for (size_t i = 0; i < strlen(cell_format_chars); i++) {
+    // A ~ z
+    if (65 <= cell_format_chars[i] && cell_format_chars[i] <= 122) {
+      switch (cell_format_chars[i]) {
+        case 'Y': {
+          char tmp[5];
+          sprintf(tmp, "%d", year);
+          result_date_str += tmp;
+          break;
+        }
+        case 'y': {
+          char tmp[5];
+          sprintf(tmp, "%d", year % 100);
+          if (0 <= (year % 100) && (year % 100) <= 9) {
+            result_date_str += "0";
+          }
+          result_date_str += tmp;
+          break;
+        }
+        case 'M': {
+          if (month <= 0 || month > 12) {
+            return RC::INTERNAL;
+          }
+          result_date_str += month_name[month];
+          break;
+        }
+        case 'm': {
+          char tmp[3];
+          sprintf(tmp, "%d", month);
+          if (0 <= month && month <= 9) {
+            result_date_str += "0";
+          }
+          result_date_str += tmp;
+          break;
+        }
+        case 'D': {
+          char tmp[3];
+          sprintf(tmp, "%d", day);
+          result_date_str += tmp;
+          if (11 <= day && day <= 13) {
+            result_date_str += "th";
+          } else {
+            switch (day % 10) {
+              case 1: {
+                result_date_str += "st";
+                break;
+              }
+              case 2: {
+                result_date_str += "nd";
+                break;
+              }
+              case 3: {
+                result_date_str += "rd";
+                break;
+              }
+              default: {
+                result_date_str += "th";
+                break;
+              }
+            }
+          }
+          break;
+        }
+        case 'd': {
+          char tmp[3];
+          sprintf(tmp, "%d", day);
+          if (0 <= day && day <= 9) {
+            result_date_str += "0";
+          }
+          result_date_str += tmp;
+          break;
+        }
+        default: {
+          result_date_str += cell_format_chars[i];
+          break;
+        }
+      }
+    } else if (cell_format_chars[i] != '%') {
+      result_date_str += cell_format_chars[i];
+    }
+  }
+  value.set_string(result_date_str.c_str());
+  return RC::SUCCESS;
+}
+
