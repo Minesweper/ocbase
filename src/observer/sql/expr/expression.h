@@ -47,6 +47,8 @@ enum class ExprType
   CONJUNCTION,  ///< 多个表达式使用同一种关系(AND或OR)来联结
   ARITHMETIC,   ///< 算术运算
   AGGREGATION,  ///< 聚合运算
+  SUBQUERY,
+  EXPRLIST,
 };
 
 /**
@@ -134,6 +136,7 @@ protected:
 private:
   std::string name_;
 };
+
 
 class StarExpr : public Expression
 {
@@ -237,6 +240,26 @@ public:
 
   void         get_value(Value &value) const { value = value_; }
   const Value &get_value() const { return value_; }
+
+  bool         get_neg(Value &value)
+  {
+    switch (value_.attr_type()) {
+      case INTS: {
+        value.set_int(-1 * value_.get_int());
+        return true;
+      } break;
+      case FLOATS: {
+        value.set_float(-1 * value_.get_float());
+        return true;
+      } break;
+      case DOUBLES: {
+        value.set_double(-1 * value_.get_double());
+        return true;
+      } break;
+      default: break;
+    }
+    return false;
+  }
 
 private:
   Value value_;
@@ -468,3 +491,25 @@ private:
   Type                        aggregate_type_;
   std::unique_ptr<Expression> child_;
 };
+
+
+static bool exp2value(Expression *exp, Value &value)
+{
+  if (exp->type() == ExprType::VALUE) {
+    ValueExpr *tmp = static_cast<ValueExpr *>(exp);
+    value          = tmp->get_value();
+    return true;
+  }
+  if (exp->type() == ExprType::ARITHMETIC) {
+    ArithmeticExpr *tmp = static_cast<ArithmeticExpr *>(exp);
+    if (tmp->arithmetic_type() != ArithmeticExpr::Type::NEGATIVE && tmp->left()->type() != ExprType::VALUE) {
+      return false;
+    }
+    ValueExpr *lhs = static_cast<ValueExpr *>(tmp->left().get());
+    if (!lhs->get_neg(value)) {
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
