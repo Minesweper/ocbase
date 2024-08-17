@@ -15,6 +15,9 @@ See the Mulan PSL v2 for more details. */
 #include "sql/expr/expression.h"
 #include "sql/expr/tuple.h"
 #include "sql/expr/arithmetic_operator.hpp"
+#include "sql/stmt/select_stmt.h"
+#include "sql/operator/logical_operator.h"
+#include "sql/operator/physical_operator.h"
 
 using namespace std;
 
@@ -623,3 +626,69 @@ RC AggregateExpr::type_from_string(const char *type_str, AggregateExpr::Type &ty
   }
   return rc;
 }
+
+SubQueryExpr::SubQueryExpr(const SelectSqlNode &sql_node) { sql_node_ = std::make_unique<SelectSqlNode>(sql_node); }
+
+SubQueryExpr::~SubQueryExpr() = default;
+
+RC SubQueryExpr::generate_select_stmt(Db *db, const std::unordered_map<std::string, Table *> &tables)
+{
+  Stmt *select_stmt = nullptr;
+  if (RC rc = SelectStmt::create(db, *sql_node_.get(), select_stmt, tables); OB_FAIL(rc)) {
+    return rc;
+  }
+  if (select_stmt->type() != StmtType::SELECT) {
+    return RC::INVALID_ARGUMENT;
+  }
+  SelectStmt *ss = static_cast<SelectStmt *>(select_stmt);
+  if (ss->projects().size() > 1) {
+    return RC::INVALID_ARGUMENT;
+  }
+  stmt_ = std::unique_ptr<SelectStmt>(ss);
+  return RC::SUCCESS;
+}
+RC SubQueryExpr::generate_logical_oper()
+{
+  if (RC rc = LogicalPlanGenerator::create(stmt_.get(), logical_oper_); OB_FAIL(rc)) {
+    LOG_WARN("subquery logical oper generate failed. return %s", strrc(rc));
+    return rc;
+  }
+  return RC::SUCCESS;
+}
+RC SubQueryExpr::generate_physical_oper()
+{
+  if (RC rc = PhysicalPlanGenerator::create(*logical_oper_, physical_oper_); OB_FAIL(rc)) {
+    LOG_WARN("subquery physical oper generate failed. return %s", strrc(rc));
+    return rc;
+  }
+  return RC::SUCCESS;
+}
+// 子算子树的 open 和 close 逻辑由外部控制
+RC SubQueryExpr::open(Trx *trx) { return physical_oper_->open(trx); }
+
+RC SubQueryExpr::close() { return physical_oper_->close(); }
+
+bool SubQueryExpr::has_more_row(const Tuple &tuple) const
+{
+  // TODO(wbj) 这里没考虑其他错误
+  physical_oper_->set_parent_tuple(&tuple);
+  return physical_oper_->next() != RC::RECORD_EOF;
+}
+
+RC SubQueryExpr::get_value(const Tuple &tuple, Value &value) const
+{
+  physical_oper_->set_parent_tuple(&tuple);
+  // 每次返回一行的第一个 cell
+  if (RC rc = physical_oper_->next(); RC::SUCCESS != rc) {
+    return rc;
+  }
+  return physical_oper_->current_tuple()->cell_at(0, value);
+}
+
+RC SubQueryExpr::try_get_value(Value &value) const { return RC::UNIMPLENMENT; }
+
+ExprType SubQueryExpr::type() const { return ExprType::SUBQUERY; }
+
+AttrType SubQueryExpr::value_type() const { return UNDEFINED; }
+
+std::unique_ptr<Expression> SubQueryExpr::deep_copy() const { return {}; }

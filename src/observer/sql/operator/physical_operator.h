@@ -89,6 +89,15 @@ public:
 
   std::vector<std::unique_ptr<PhysicalOperator>> &children() { return children_; }
 
+  void set_parent_tuple(const Tuple *tp)
+  {
+    parent_tuple_ = tp;
+    for (auto &ch : children_) {
+      ch->set_parent_tuple(tp);
+    }
+  }
+
 protected:
   std::vector<std::unique_ptr<PhysicalOperator>> children_;
+  Tuple                                         *parent_tuple_ = 0;
 };
