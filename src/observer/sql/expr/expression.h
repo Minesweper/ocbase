@@ -470,6 +470,41 @@ public:
 
   std::vector<std::unique_ptr<Expression>> &children() { return children_; }
 
+   void traverse(const std::function<void(Expression *)> &func, const std::function<bool(Expression *)> &filter) override
+  {
+    if (filter(this)) {
+      for (auto &child : children_) {
+        child->traverse(func, filter);
+      }
+      func(this);
+    }
+  }
+
+  RC traverse_check(const std::function<RC(Expression *)> &check_func) override
+  {
+    RC rc = RC::SUCCESS;
+    for (auto &child : children_) {
+      if (RC::SUCCESS != (rc = child->traverse_check(check_func))) {
+        return rc;
+      }
+    }
+    if (RC::SUCCESS != (rc = check_func(this))) {
+      return rc;
+    }
+    return RC::SUCCESS;
+  }
+
+  std::unique_ptr<Expression> deep_copy() const override
+  {
+    std::vector<std::unique_ptr<Expression>> new_children;
+    for (auto &child : children_) {
+      new_children.emplace_back(child->deep_copy());
+    }
+    auto new_expr = std::make_unique<ConjunctionExpr>(conjunction_type_, std::move(new_children));
+    new_expr->set_name(name());
+    return new_expr;
+  }
+
 private:
   Type                                     conjunction_type_;
   std::vector<std::unique_ptr<Expression>> children_;
@@ -518,6 +553,48 @@ public:
 
   std::unique_ptr<Expression> &left() { return left_; }
   std::unique_ptr<Expression> &right() { return right_; }
+
+  bool has_rhs() const
+  {
+    // return arithmetic_type_ != Type::NEGATIVE; // logical
+    return right_ != nullptr;  // physical
+  }
+
+  void traverse(const std::function<void(Expression *)> &func, const std::function<bool(Expression *)> &filter) override
+  {
+    if (filter(this)) {
+      left_->traverse(func, filter);
+      if (has_rhs()) {
+        right_->traverse(func, filter);
+      }
+      func(this);
+    }
+  }
+
+  RC traverse_check(const std::function<RC(Expression *)> &check_func) override
+  {
+    RC rc = RC::SUCCESS;
+    if (RC::SUCCESS != (rc = left_->traverse_check(check_func))) {
+      return rc;
+    } else if (has_rhs() && RC::SUCCESS != (rc = right_->traverse_check(check_func))) {
+      return rc;
+    } else if (RC::SUCCESS != (rc = check_func(this))) {
+      return rc;
+    }
+    return RC::SUCCESS;
+  }
+
+  std::unique_ptr<Expression> deep_copy() const override
+  {
+    std::unique_ptr<Expression> new_left = left_->deep_copy();
+    std::unique_ptr<Expression> new_right;
+    if (right_) {  // NOTE: not has_rhs
+      new_right = right_->deep_copy();
+    }
+    auto new_expr = std::make_unique<ArithmeticExpr>(arithmetic_type_, std::move(new_left), std::move(new_right));
+    new_expr->set_name(name());
+    return new_expr;
+  }
 
 private:
   RC calc_value(const Value &left_value, const Value &right_value, Value &value) const;
@@ -684,6 +761,42 @@ public:
     }
     return rc;
   }
+  void traverse(const std::function<void(Expression *)> &func, const std::function<bool(Expression *)> &filter) override
+  {
+    if (filter(this)) {
+      for (auto &param : params_) {
+        param->traverse(func, filter);
+      }
+      func(this);
+    }
+  }
+
+  RC traverse_check(const std::function<RC(Expression *)> &check_func) override
+  {
+    RC rc = RC::SUCCESS;
+    for (auto &param : params_) {
+      if (RC::SUCCESS != (rc = param->traverse_check(check_func))) {
+        return rc;
+      }
+    }
+    if (RC::SUCCESS != (rc = check_func(this))) {
+      return rc;
+    }
+    return RC::SUCCESS;
+  }
+
+  std::unique_ptr<Expression> deep_copy() const override
+  {
+    std::vector<std::unique_ptr<Expression>> new_params;
+    for (auto &param : params_) {
+      new_params.emplace_back(param->deep_copy());
+    }
+    auto new_expr = std::make_unique<SysFuncExpr>(func_type_, std::move(new_params));
+    new_expr->set_name(name());
+    return new_expr;
+  }
+
+  RC check_param_type_and_number() const;
 
 private:
   SysFuncType                              func_type_;
