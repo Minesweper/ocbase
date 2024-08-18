@@ -370,6 +370,7 @@ class ComparisonExpr : public Expression
 {
 public:
   ComparisonExpr(CompOp comp, std::unique_ptr<Expression> left, std::unique_ptr<Expression> right);
+  ComparisonExpr(CompOp comp, Expression *left, Expression *right);
   virtual ~ComparisonExpr();
 
   ExprType type() const override { return ExprType::COMPARISON; }
@@ -400,6 +401,41 @@ public:
 
   template <typename T>
   RC compare_column(const Column &left, const Column &right, std::vector<uint8_t> &result) const;
+  void traverse(const std::function<void(Expression *)> &func, const std::function<bool(Expression *)> &filter) override
+  {
+    if (filter(this)) {
+      left_->traverse(func, filter);
+      if (has_rhs()) {
+        right_->traverse(func, filter);
+      }
+      func(this);
+    }
+  }
+
+  RC traverse_check(const std::function<RC(Expression *)> &check_func) override
+  {
+    RC rc = RC::SUCCESS;
+    if (RC::SUCCESS != (rc = left_->traverse_check(check_func))) {
+      return rc;
+    } else if (has_rhs() && RC::SUCCESS != (rc = right_->traverse_check(check_func))) {
+      return rc;
+    } else if (RC::SUCCESS != (rc = check_func(this))) {
+      return rc;
+    }
+    return RC::SUCCESS;
+  }
+
+  std::unique_ptr<Expression> deep_copy() const override
+  {
+    std::unique_ptr<Expression> new_left = left_->deep_copy();
+    std::unique_ptr<Expression> new_right;
+    if (right_) {  // NOTE: not has_rhs
+      new_right = right_->deep_copy();
+    }
+    auto new_expr = std::make_unique<ComparisonExpr>(comp_, std::move(new_left), std::move(new_right));
+    new_expr->set_name(name());
+    return new_expr;
+  }
 
 private:
   CompOp                      comp_;
