@@ -36,7 +36,7 @@ std::string month_name[] = {"",
     "November",
     "December"};
 
-RC FieldExpr::get_value(const Tuple &tuple, Value &value) const
+RC FieldExpr::get_value(const Tuple &tuple, Value &value) 
 {
   return tuple.find_cell(TupleCellSpec(table_name(), field_name()), value);
 }
@@ -77,7 +77,7 @@ bool ValueExpr::equal(const Expression &other) const
   return value_.compare(other_value_expr.get_value()) == 0;
 }
 
-RC ValueExpr::get_value(const Tuple &tuple, Value &value) const
+RC ValueExpr::get_value(const Tuple &tuple, Value &value)
 {
   value = value_;
   return RC::SUCCESS;
@@ -116,7 +116,7 @@ RC CastExpr::cast(const Value &value, Value &cast_value) const
   return rc;
 }
 
-RC CastExpr::get_value(const Tuple &tuple, Value &cell) const
+RC CastExpr::get_value(const Tuple &tuple, Value &cell) 
 {
   RC rc = child_->get_value(tuple, cell);
   if (rc != RC::SUCCESS) {
@@ -198,7 +198,7 @@ RC ComparisonExpr::try_get_value(Value &cell) const
   return RC::INVALID_ARGUMENT;
 }
 
-RC ComparisonExpr::get_value(const Tuple &tuple, Value &value) const
+RC ComparisonExpr::get_value(const Tuple &tuple, Value &value) 
 {
   Value left_value;
   Value right_value;
@@ -279,7 +279,7 @@ ConjunctionExpr::ConjunctionExpr(Type type, vector<unique_ptr<Expression>> &chil
     : conjunction_type_(type), children_(std::move(children))
 {}
 
-RC ConjunctionExpr::get_value(const Tuple &tuple, Value &value) const
+RC ConjunctionExpr::get_value(const Tuple &tuple, Value &value) 
 {
   RC rc = RC::SUCCESS;
   if (children_.empty()) {
@@ -476,7 +476,7 @@ RC ArithmeticExpr::execute_calc(
   return rc;
 }
 
-RC ArithmeticExpr::get_value(const Tuple &tuple, Value &value) const
+RC ArithmeticExpr::get_value(const Tuple &tuple, Value &value) 
 {
   RC rc = RC::SUCCESS;
 
@@ -618,7 +618,7 @@ unique_ptr<Aggregator> AggregateExpr::create_aggregator() const
   return aggregator;
 }
 
-RC AggregateExpr::get_value(const Tuple &tuple, Value &value) const
+RC AggregateExpr::get_value(const Tuple &tuple, Value &value) 
 {
   return tuple.find_cell(TupleCellSpec(name()), value);
 }
@@ -689,7 +689,7 @@ bool SubQueryExpr::has_more_row(const Tuple &tuple) const
   return physical_oper_->next() != RC::RECORD_EOF;
 }
 
-RC SubQueryExpr::get_value(const Tuple &tuple, Value &value) const
+RC SubQueryExpr::get_value(const Tuple &tuple, Value &value) 
 {
   physical_oper_->set_parent_tuple(&tuple);
   // 每次返回一行的第一个 cell
