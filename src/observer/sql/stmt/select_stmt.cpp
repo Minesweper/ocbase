@@ -210,7 +210,7 @@ RC SelectStmt::create(
     return RC::SUCCESS;
   };
 
-  for (size_t i = 0; i < select_sql.project_exprs.size(); ++i) {
+  for (size_t i = 0; i < select_sql.expressions.size(); ++i) {
     Expression *expr = select_sql.project_exprs[i];
     // 单独处理 select 后跟 * 的情况 select *; select *.*; select t1.*
     if (expr->type() == ExprType::FIELD) {

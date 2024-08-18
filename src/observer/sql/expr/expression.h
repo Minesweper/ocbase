@@ -24,7 +24,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/expr/aggregator.h"
 #include "storage/common/chunk.h"
 #include "storage/db/db.h"
-
+#include "sql/parser/parse_defs.h"
 
 class Tuple;
 
