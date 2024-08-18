@@ -198,6 +198,10 @@ ComparisonExpr::ComparisonExpr(CompOp comp, unique_ptr<Expression> left, unique_
     : comp_(comp), left_(std::move(left)), right_(std::move(right))
 {}
 
+ComparisonExpr::ComparisonExpr(CompOp comp, Expression *left, Expression *right)
+    : comp_(comp), left_(left), right_(right)
+{}
+
 ComparisonExpr::~ComparisonExpr() {}
 
 RC ComparisonExpr::compare_value(const Value &left, const Value &right, bool &result) const
@@ -927,3 +931,33 @@ RC SysFuncExpr::get_func_data_format_value(const Tuple &tuple, Value &value) con
   return RC::SUCCESS;
 }
 
+RC SysFuncExpr::check_param_type_and_number() const
+{
+  RC rc = RC::SUCCESS;
+  switch (func_type_) {
+    case SYS_FUNC_LENGTH: {
+      if (params_.size() != 1 || params_[0]->value_type() != CHARS)
+        rc = RC::INVALID_ARGUMENT;
+    } break;
+    case SYS_FUNC_ROUND: {
+      // 参数可以为一个或两个,第一个参数的结果类型 必须为 floats 或 double
+      if ((params_.size() != 1 && params_.size() != 2) ||
+          (params_[0]->value_type() != FLOATS && params_[0]->value_type() != DOUBLES))
+        rc = RC::INVALID_ARGUMENT;
+      // 如果有第二个参数，则类型必须为 INT
+      if (params_.size() == 2) {
+        if (params_[1]->value_type() != INTS) {
+          rc = RC::INVALID_ARGUMENT;
+        }
+      }
+    } break;
+    case SYS_FUNC_DATE_FORMAT: {
+      if (params_.size() != 2 || params_[0]->value_type() != DATES || params_[1]->value_type() != CHARS)
+        rc = RC::INVALID_ARGUMENT;
+    } break;
+    default: {
+      rc = RC::INVALID_ARGUMENT;
+    } break;
+  }
+  return rc;
+}
