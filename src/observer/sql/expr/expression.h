@@ -401,6 +401,14 @@ public:
 
   template <typename T>
   RC compare_column(const Column &left, const Column &right, std::vector<uint8_t> &result) const;
+
+  bool has_rhs() const
+  {
+    // return right_;
+    // 虽然 IS_[NOT]_NULL 的情况下 rhs 是 null ValueExpr 但仍然提供这个接口
+    return comp_ != IS_NULL && comp_ != IS_NOT_NULL;
+  }
+
   void traverse(const std::function<void(Expression *)> &func, const std::function<bool(Expression *)> &filter) override
   {
     if (filter(this)) {
