@@ -1006,9 +1006,9 @@ AttrType AggrFuncExpr::value_type() const
 }
 
 // Project 算子的cell_at 会调用该函数取得聚集函数最后计算的结果,传入的Tuple 就是gropuby 中的 grouptuple
-RC AggrFuncExpr::get_value(const Tuple &tuple, Value &cell) const
+RC AggrFuncExpr::get_value(const Tuple &tuple, Value &cell) 
 {
-  TupleCellSpec spec(name().c_str());
+  TupleCellSpec spec(name());
   // int index = 0;
   //  spec.set_agg_type(get_aggr_func_type());
   if (is_first_) {

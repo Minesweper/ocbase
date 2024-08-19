@@ -730,7 +730,7 @@ public:
   // }
   std::unique_ptr<Expression>       &get_param() { return param_; }
   const std::unique_ptr<Expression> &get_param() const { return param_; }
-  RC                                 get_value(const Tuple &tuple, Value &value) const override;
+  RC                                 get_value(const Tuple &tuple, Value &value) override;
 
   std::string get_func_name() const;
 
