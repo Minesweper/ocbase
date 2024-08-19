@@ -708,6 +708,79 @@ private:
   std::unique_ptr<PhysicalOperator> physical_oper_;
 };
 
+class AggrFuncExpr : public Expression
+{
+public:
+  AggrFuncExpr(AggrFuncType type, Expression *param);
+  AggrFuncExpr(AggrFuncType type, std::unique_ptr<Expression> param);
+  virtual ~AggrFuncExpr() = default;
+
+  ExprType type() const override { return ExprType::AGGRFUNCTION; }
+  // void set_param_constexpr(bool flag)
+  // {
+  //   param_is_constexpr_ = flag;
+  // }
+  std::unique_ptr<Expression>       &get_param() { return param_; }
+  const std::unique_ptr<Expression> &get_param() const { return param_; }
+  RC                                 get_value(const Tuple &tuple, Value &value) const override;
+
+  std::string get_func_name() const;
+
+  AttrType     value_type() const override;
+  AggrFuncType get_aggr_func_type() const { return type_; }
+
+  // count(*) count(1) count(1+1) 需要特殊处理 null
+  bool is_count_constexpr() const
+  {
+    if (type_ == AggrFuncType::AGG_COUNT && param_is_constexpr_) {
+      return true;
+    }
+    return false;
+  }
+
+  void set_aggr_fun_type(AggrFuncType type) { type_ = type; }
+
+  // 聚集函数表达式的 traverse[_check] 需要特殊对待 param 可能是个 *
+  void traverse(const std::function<void(Expression *)> &func, const std::function<bool(Expression *)> &filter) override
+  {
+    if (filter(this)) {
+      param_->traverse(func, filter);
+      func(this);
+    }
+  }
+
+  RC traverse_check(const std::function<RC(Expression *)> &check_func) override
+  {
+    RC rc = RC::SUCCESS;
+    if (RC::SUCCESS != (rc = param_->traverse_check(check_func))) {
+      return rc;
+    }
+    if (RC::SUCCESS != (rc = check_func(this))) {
+      return rc;
+    }
+    return rc;
+  }
+
+  std::unique_ptr<Expression> deep_copy() const override
+  {
+    std::unique_ptr<Expression> new_param;
+    if (param_) {
+      new_param = param_->deep_copy();
+    }
+    auto new_expr = std::make_unique<AggrFuncExpr>(type_, std::move(new_param));
+    new_expr->set_name(name());
+    return new_expr;
+  }
+
+private:
+  AggrFuncType                type_;
+  std::unique_ptr<Expression> param_;
+  bool                        param_is_constexpr_ = false;
+
+  bool is_first_ = true;
+  int  index_    = -1;
+};
+
 class SysFuncExpr : public Expression
 {
 public:

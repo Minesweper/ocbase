@@ -211,7 +211,7 @@ RC SelectStmt::create(
   };
 
   for (size_t i = 0; i < select_sql.expressions.size(); ++i) {
-    Expression *expr = select_sql.project_exprs[i];
+    Expression *expr = select_sql.expressions[i];
     // 单独处理 select 后跟 * 的情况 select *; select *.*; select t1.*
     if (expr->type() == ExprType::FIELD) {
       FieldExpr  *field_expr = static_cast<FieldExpr *>(expr);
@@ -257,7 +257,7 @@ RC SelectStmt::create(
       projects.emplace_back(expr);
     }
   }
-  select_sql.project_exprs.clear();  // 管理权已经移交到 projects 中 后续会交给 select stmt
+  select_sql.expressions.clear();  // 管理权已经移交到 projects 中 后续会交给 select stmt
 
   LOG_INFO("got %d tables in from clause and %d exprs in query clause", tables.size(), projects.size());
 
@@ -273,7 +273,7 @@ RC SelectStmt::create(
   GroupByStmt *groupby_stmt       = nullptr;  // TODO release memory when failed
   FilterStmt  *having_filter_stmt = nullptr;  // TODO release memory when failed
   // 有聚集函数表达式 或者有 group by clause 就要添加 group by stmt
-  if (has_aggr_func_expr || select_sql.groupby_exprs.size() > 0) {
+  if (has_aggr_func_expr || select_sql.group_by.size() > 0) {
     // 1. 提取 AggrFuncExpr 以及不在 AggrFuncExpr 中的 FieldExpr
     std::vector<std::unique_ptr<AggrFuncExpr>> aggr_exprs;
     // select 子句中出现的所有 fieldexpr 都需要传递收集起来,
@@ -334,7 +334,7 @@ RC SelectStmt::create(
     // - 聚集函数中的字段 OK select clause 检查过了
 
     // - 没有 group by clause 时，不应该有非聚集函数中的字段
-    if (!field_exprs_not_aggr.empty() && select_sql.groupby_exprs.size() == 0) {
+    if (!field_exprs_not_aggr.empty() && select_sql.group_by.size() == 0) {
       LOG_WARN("No Group By. But Has Fields Not In Aggr Func");
       return RC::INVALID_ARGUMENT;
     }
@@ -342,10 +342,10 @@ RC SelectStmt::create(
     // - 有 group by，要判断 select clause 和 having clause 中的 expr (除 agg_expr) 在一个 group 中只能有一个值
     // e.g. select min(c1), c2+c3*c4 from t1 group by c2+c3, c4; YES
     //      select min(c1), c2, c3+c4 from t1 group by c2+c3;    NO
-    if (select_sql.groupby_exprs.size() > 0) {
+    if (select_sql.group_by.size() > 0) {
       // do check field
-      for (size_t i = 0; i < select_sql.groupby_exprs.size(); i++) {
-        Expression *expr = select_sql.groupby_exprs[i];
+      for (size_t i = 0; i < select_sql.group_by.size(); i++) {
+        Expression *expr = select_sql.group_by[i];
         if (rc = expr->traverse_check(check_project_expr); rc != RC::SUCCESS) {
           LOG_WARN("project expr traverse check_field error!");
           return rc;
@@ -353,7 +353,7 @@ RC SelectStmt::create(
       }
 
       // 先提取 select 后的非 aggexpr ，然后判断其是否是 groupby 中
-      std::vector<Expression *> &groupby_exprs               = select_sql.groupby_exprs;
+      std::vector<Expression *> &groupby_exprs               = select_sql.group_by;
       auto                       check_expr_in_groupby_exprs = [&groupby_exprs](std::unique_ptr<Expression> &expr) {
         for (auto tmp : groupby_exprs) {
           if (expr->name() == tmp->name())  // 通过表达式的名称进行判断
@@ -377,7 +377,7 @@ RC SelectStmt::create(
     rc = GroupByStmt::create(db,
         default_table,
         &table_map,
-        select_sql.groupby_exprs,
+        select_sql.group_by,
         groupby_stmt,
         std::move(aggr_exprs),
         std::move(field_exprs));
@@ -385,7 +385,7 @@ RC SelectStmt::create(
       LOG_WARN("cannot construct groupby stmt");
       return rc;
     }
-    select_sql.groupby_exprs.clear();
+    select_sql.group_by.clear();
     // 4. 在物理计划生成阶段向 groupby_operator 下挂一个 orderby_operator
   }
 
@@ -395,7 +395,7 @@ RC SelectStmt::create(
   // - 先提取 select clause 后的 field_expr(非agg_expr中的)，和 agg_expr，这里提取时已经不需要再进行 check 了，因为在
   // select clause
   // - order by 后的 expr 进行 check field
-  if (select_sql.orderbys.size() > 0) {
+  if (select_sql.order_by.size() > 0) {
     // 提取 AggrFuncExpr 以及不在 AggrFuncExpr 中的 FieldExpr
     std::vector<std::unique_ptr<Expression>> expr_for_orderby;
     // 用于从 project exprs 中提取所有 aggr func exprs. e.g. min(c1 + 1) + 1
@@ -419,19 +419,19 @@ RC SelectStmt::create(
     }
     // TODO 检查应该放到 create 里面去检查
     // do check field
-    for (size_t i = 0; i < select_sql.orderbys.size(); i++) {
-      Expression *expr = select_sql.orderbys[i].expr;
+    for (size_t i = 0; i < select_sql.order_by.size(); i++) {
+      Expression *expr = select_sql.order_by[i].expr;
       if (rc = expr->traverse_check(check_project_expr); rc != RC::SUCCESS) {
         LOG_WARN("project expr traverse check_field error!");
         return rc;
       }
     }
     rc = OrderByStmt::create(
-        db, default_table, &table_map, select_sql.orderbys, orderby_stmt, std::move(expr_for_orderby));
+        db, default_table, &table_map, select_sql.order_by, orderby_stmt, std::move(expr_for_orderby));
     if (RC::SUCCESS != rc) {
       return rc;
     }
-    select_sql.orderbys.clear();
+    select_sql.order_by.clear();
   }
 
   // everything alright
