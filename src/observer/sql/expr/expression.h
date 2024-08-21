@@ -467,8 +467,8 @@ public:
   };
 
 public:
-  ConjunctionExpr(Type type, std::vector<std::unique_ptr<Expression>> &children);
-  ConjunctionExpr(Type type, Expression *left, Expression *right);
+  ConjunctionExpr(ConjunctionExpr::Type type, std::vector<std::unique_ptr<Expression>> &children);
+  ConjunctionExpr(ConjunctionExpr::Type type, Expression *left, Expression *right);
   virtual ~ConjunctionExpr() = default;
 
   ExprType type() const override { return ExprType::CONJUNCTION; }
@@ -515,7 +515,7 @@ public:
   }
 
 private:
-  Type                                     conjunction_type_;
+  ConjunctionExpr::Type                                     conjunction_type_;
   std::vector<std::unique_ptr<Expression>> children_;
 };
 
