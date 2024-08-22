@@ -47,7 +47,7 @@ void Bitmap::init(char *bitmap, int size)
   size_   = size;
 }
 
-bool Bitmap::get_bit(int index)
+bool Bitmap::get_bit const(int index)
 {
   char bits = bitmap_[index / 8];
   return (bits & (1 << (index % 8))) != 0;
