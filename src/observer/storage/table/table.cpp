@@ -572,3 +572,31 @@ RC Table::sync()
   LOG_INFO("Sync table over. table=%s", name());
   return rc;
 }
+
+
+RC Table::write_text(int64_t &offset, int64_t length, const char *data)
+{
+  RC rc = RC::SUCCESS;
+  rc    = text_buffer_pool_->append_data(offset, length, data);
+  if (RC::SUCCESS != rc) {
+    LOG_WARN("Failed to append text into disk_buffer_pool, rc=%s", strrc(rc));
+    offset = -1;
+    length = -1;
+  }
+  return rc;
+}
+
+RC Table::read_text(int64_t offset, int64_t length, char *data) const
+{
+  RC rc = RC::SUCCESS;
+  if (0 > offset || 0 > length) {
+    LOG_ERROR("Invalid param: text offset %ld, length %ld", offset, length);
+    return RC::INVALID_ARGUMENT;
+  }
+
+  rc = text_buffer_pool_->get_data(offset, length, data);
+  if (RC::SUCCESS != rc) {
+    LOG_WARN("Failed to get text from disk_buffer_pool, rc=%s", strrc(rc));
+  }
+  return rc;
+}

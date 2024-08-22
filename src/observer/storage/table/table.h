@@ -101,6 +101,9 @@ public:
    */
   RC visit_record(const RID &rid, function<bool(Record &)> visitor);
 
+  RC write_text(int64_t &offset, int64_t length, const char *data);
+  RC read_text(int64_t offset, int64_t length, char *data) const;
+
 public:
   int32_t     table_id() const { return table_meta_.table_id(); }
   const char *name() const;
