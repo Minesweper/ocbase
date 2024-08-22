@@ -509,7 +509,8 @@ public:
     for (auto &child : children_) {
       new_children.emplace_back(child->deep_copy());
     }
-    auto new_expr = std::make_unique<ConjunctionExpr>(conjunction_type_, std::move(new_children));
+
+    auto new_expr = std::make_unique<ConjunctionExpr>(conjunction_type_, new_children);
     new_expr->set_name(name());
     return new_expr;
   }
