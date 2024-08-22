@@ -40,7 +40,7 @@ public:
   PhysicalPlanGenerator()          = default;
   virtual ~PhysicalPlanGenerator() = default;
 
-  RC create(LogicalOperator &logical_operator, std::unique_ptr<PhysicalOperator> &oper);
+  static RC create(LogicalOperator &logical_operator, std::unique_ptr<PhysicalOperator> &oper);
   RC create_vec(LogicalOperator &logical_operator, std::unique_ptr<PhysicalOperator> &oper);
 
 private:

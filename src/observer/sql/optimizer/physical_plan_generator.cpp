@@ -46,7 +46,7 @@ See the Mulan PSL v2 for more details. */
 
 using namespace std;
 
-RC PhysicalPlanGenerator::create(LogicalOperator &logical_operator, unique_ptr<PhysicalOperator> &oper)
+static RC PhysicalPlanGenerator::create(LogicalOperator &logical_operator, unique_ptr<PhysicalOperator> &oper)
 {
   RC rc = RC::SUCCESS;
 
