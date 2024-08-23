@@ -41,7 +41,7 @@ public:
     return get_value(expression, cell);
   }
 
-  RC spec_at(int index, TupleCellSpec &spec) const override
+  RC spec_at(int index, TupleCellSpec &spec) const
   {
     if (index < 0 || index >= cell_num()) {
       return RC::INVALID_ARGUMENT;
@@ -52,11 +52,11 @@ public:
     return RC::SUCCESS;
   }
 
-  RC find_cell(const TupleCellSpec &spec, Value &cell) const override
+  RC find_cell(const TupleCellSpec &spec, Value &cell, int &index) const override
   {
     RC rc = RC::SUCCESS;
     if (child_tuple_ != nullptr) {
-      rc = child_tuple_->find_cell(spec, cell);
+      rc = child_tuple_->find_cell(spec, cell, index);
       if (OB_SUCC(rc)) {
         return rc;
       }
