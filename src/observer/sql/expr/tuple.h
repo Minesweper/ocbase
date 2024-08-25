@@ -73,7 +73,7 @@ public:
    * @param[out] cell  返回的Cell
    */
   virtual RC cell_at(int index, Value &cell) const = 0;
-
+  virtual RC spec_at(int index, TupleCellSpec &spec) const = 0;
   /**
    * @brief 根据cell的描述，获取cell的值
    *
@@ -175,6 +175,13 @@ public:
     return RC::SUCCESS;
   }
 
+  RC spec_at(int index, TupleCellSpec &spec) const 
+  {
+    const Field &field = speces_[index]->field();
+    spec               = TupleCellSpec(table_->name(), field.field_name());
+    return RC::SUCCESS;
+  }
+
   RC find_cell(const TupleCellSpec &spec, Value &cell, int &index) const override
   {
     const char *table_name = spec.table_name();
@@ -249,6 +256,12 @@ public:
     return exprs_[index]->get_value(*tuple_, cell);
   }
 
+  RC spec_at(int index, TupleCellSpec &spec) const 
+  {
+    spec = TupleCellSpec(expressions_[index]->name());
+    return RC::SUCCESS;
+  }
+
   RC find_cell(const TupleCellSpec &spec, Value &cell, int &index) const override
   {
     return tuple_->find_cell(spec, cell, index);  // TODO 应该不会走到这里
@@ -297,11 +310,41 @@ public:
     cell = cells_[index];
     return RC::SUCCESS;
   }
+  RC spec_at(int index, TupleCellSpec &spec) const 
+  {
+    if (index < 0 || index >= cell_num()) {
+      return RC::NOTFOUND;
+    }
 
+    spec = specs_[index];
+    return RC::SUCCESS;
+  }
   virtual RC find_cell(const TupleCellSpec &spec, Value &cell, int &index) const override { return RC::INTERNAL; }
+  static RC  make(const Tuple &tuple, ValueListTuple &value_list)
+  {
+    const int cell_num = tuple.cell_num();
+    for (int i = 0; i < cell_num; i++) {
+      Value cell;
+      RC    rc = tuple.cell_at(i, cell);
+      if (OB_FAIL(rc)) {
+        return rc;
+      }
+
+      TupleCellSpec spec;
+      rc = tuple.spec_at(i, spec);
+      if (OB_FAIL(rc)) {
+        return rc;
+      }
+
+      value_list.cells_.push_back(cell);
+      value_list.specs_.push_back(spec);
+    }
+    return RC::SUCCESS;
+  }
 
 private:
   std::vector<Value> cells_;
+  std::vector<TupleCellSpec> specs_;
 };
 
 /**
@@ -330,6 +373,20 @@ public:
 
     if (index >= left_cell_num && index < left_cell_num + right_->cell_num()) {
       return right_->cell_at(index - left_cell_num, value);
+    }
+
+    return RC::NOTFOUND;
+  }
+
+   RC spec_at(int index, TupleCellSpec &spec) const override
+  {
+    const int left_cell_num = left_->cell_num();
+    if (index >= 0 && index < left_cell_num) {
+      return left_->spec_at(index, spec);
+    }
+
+    if (index >= left_cell_num && index < left_cell_num + right_->cell_num()) {
+      return right_->spec_at(index - left_cell_num, spec);
     }
 
     return RC::NOTFOUND;
@@ -382,7 +439,7 @@ public:
     }
     return RC::SUCCESS;
   }
-
+  RC     spec_at(int index, TupleCellSpec &spec) const { return RC::SUCCESS; }
   size_t find_agg_index_by_name(std::string expr_name) const
   {
     for (size_t i = 0; i < aggr_results_.size(); ++i) {
@@ -625,6 +682,7 @@ public:
   int cell_num() const { return 0; }
 
   RC cell_at(int index, Value &cell) const { return RC::INVALID_ARGUMENT; }
+  RC spec_at(int index, TupleCellSpec &spec) const { return RC::SUCCESS; }
 
   RC find_cell(const TupleCellSpec &spec, Value &cell, int &index) const { return RC::INVALID_ARGUMENT; }
 };
@@ -652,6 +710,7 @@ public:
     cell = (*cells_)[index];
     return RC::SUCCESS;
   }
+  RC spec_at(int index, TupleCellSpec &spec) const { return RC::SUCCESS; }
 
   RC find_cell(const TupleCellSpec &spec, Value &cell, int &index) const override
   {

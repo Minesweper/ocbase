@@ -39,7 +39,6 @@ public:
 
   int cell_num() const override;
   RC  cell_at(int index, Value &cell) const override;
-  RC  spec_at(int index, TupleCellSpec &spec) const override;
   RC  find_cell(const TupleCellSpec &spec, Value &cell) const override;
 
   void   add_tuple(std::unique_ptr<Tuple> tuple);
