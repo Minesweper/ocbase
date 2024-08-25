@@ -50,7 +50,7 @@ RC CompositeTuple::spec_at(int index, TupleCellSpec &spec) const
   return RC::NOTFOUND;
 }
 
-RC CompositeTuple::find_cell(const TupleCellSpec &spec, Value &cell) const
+RC CompositeTuple::find_cell(const TupleCellSpec &spec, Value &cell, int &index) const
 {
   RC rc = RC::NOTFOUND;
   for (const auto &tuple : tuples_) {
