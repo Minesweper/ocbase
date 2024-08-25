@@ -281,7 +281,7 @@ private:
   std::vector<TupleCellSpec *> speces_;
 #endif
 private:
-  std::vector<std::unique_ptr<Expression>> exprs_;
+  std::vector<std::unique_ptr<Expression>> expressions_;
   Tuple                                   *tuple_ = nullptr;
 };
 
