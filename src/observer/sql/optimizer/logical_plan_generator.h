@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-
+#include <vector>
 #include "common/rc.h"
 #include "sql/optimizer/logical_plan_generator.h"
 
@@ -30,12 +30,11 @@
 #include "sql/stmt/explain_stmt.h"
 #include "sql/stmt/update_stmt.h"
 #include "sql/stmt/orderby_stmt.h"
-
+#include"sql/stmt/groupby_stmt.h"
 
 
 class Stmt;
 class CalcStmt;
-class CreateTableStmt;
 class SelectStmt;
 class FilterStmt;
 class InsertStmt;
@@ -103,42 +102,17 @@ private:
     return RC::SUCCESS;
   }
 
-  static RC create_plan(CreateTableStmt* create_stmt, std::unique_ptr<LogicalOperator>& logical_operator) {
-    RC                               rc = RC::SUCCESS;
-    std::unique_ptr<LogicalOperator> select_oper;
-    Stmt                            *create_select_stmt = create_stmt->get_create_table_select_stmt();
-    if (nullptr != create_select_stmt) {
-      SelectStmt *select_stmt = static_cast<SelectStmt *>(create_select_stmt);
-      rc                      = create_plan(select_stmt, select_oper);
-      if (RC::SUCCESS != rc) {
-        LOG_WARN("failed to create sub select logical plan, r=%s", strrc(rc));
-        return rc;
-      }
-    }
-
-    logical_operator = std::unique_ptr<LogicalOperator>(
-        new CreateTableLogicalOperator(create_stmt->get_db(), create_stmt->table_name(), create_stmt->attr_infos()));
-    if (select_oper) {
-      logical_operator->add_child(std::move(select_oper));
-    }
-    return rc;
-  }
-
+  
   static RC create_plan(SelectStmt* select_stmt, std::unique_ptr<LogicalOperator>& logical_operator) {
     RC rc = RC::SUCCESS;
 
     const std::vector<SelectStmt::JoinTables> &tables = select_stmt->join_tables();
     // const std::vector<Field> &all_fields = select_stmt->query_fields();
 
-    auto process_one_table = [/*, &all_fields*/](unique_ptr<LogicalOperator> &prev_oper, Table *table, FilterStmt *fu) {
-      std::vector<Field> fields;  // TODO(wbj) 现在没用这个
-      // for (const Field &field : all_fields) {
-      //   if (0 == strcmp(field.table_name(), table->name())) {
-      //     fields.push_back(field);
-      //   }
-      // }
-      unique_ptr<LogicalOperator> table_get_oper(new TableGetLogicalOperator(table, fields, true /*readonly*/));
-      unique_ptr<LogicalOperator> predicate_oper;
+    auto process_one_table = [](std::unique_ptr<LogicalOperator> &prev_oper, Table *table, FilterStmt *fu) {
+      std::vector<Field> fields;  
+      std::unique_ptr<LogicalOperator> table_get_oper(new TableGetLogicalOperator(table, fields, true /*readonly*/));
+      std::unique_ptr<LogicalOperator> predicate_oper;
       if (nullptr != fu) {
         if (RC rc = LogicalPlanGenerator::create_plan(fu, predicate_oper); rc != RC::SUCCESS) {
           LOG_WARN("failed to create predicate logical plan. rc=%s", strrc(rc));
@@ -153,7 +127,7 @@ private:
         }
         prev_oper = std::move(table_get_oper);
       } else {
-        unique_ptr<JoinLogicalOperator> join_oper = std::make_unique<JoinLogicalOperator>();
+        std::unique_ptr<JoinLogicalOperator> join_oper = std::make_unique<JoinLogicalOperator>();
         join_oper->add_child(std::move(prev_oper));
         join_oper->add_child(std::move(table_get_oper));
         if (predicate_oper) {
@@ -166,9 +140,9 @@ private:
       return RC::SUCCESS;
     };
 
-    unique_ptr<LogicalOperator> outside_prev_oper(nullptr);  // 笛卡尔积
+    std::unique_ptr<LogicalOperator> outside_prev_oper(nullptr);  // 笛卡尔积
     for (auto &jt : tables) {
-      unique_ptr<LogicalOperator> prev_oper(nullptr);  // INNER JOIN
+      std::unique_ptr<LogicalOperator> prev_oper(nullptr);  // INNER JOIN
       auto                       &join_tables = jt.join_tables();
       auto                       &on_conds    = jt.on_conds();
       ASSERT(join_tables.size() == on_conds.size(), "ERROR!");
@@ -181,7 +155,7 @@ private:
       if (outside_prev_oper == nullptr) {
         outside_prev_oper = std::move(prev_oper);
       } else {
-        unique_ptr<JoinLogicalOperator> join_oper = std::make_unique<JoinLogicalOperator>();
+        std::unique_ptr<JoinLogicalOperator> join_oper = std::make_unique<JoinLogicalOperator>();
         join_oper->add_child(std::move(outside_prev_oper));
         join_oper->add_child(std::move(prev_oper));
         outside_prev_oper = std::move(join_oper);
@@ -190,10 +164,10 @@ private:
 
     // set top oper
     ASSERT(outside_prev_oper, "ERROR!");                                  // TODO(wbj) Why doesn't work?
-    unique_ptr<LogicalOperator> top_oper = std::move(outside_prev_oper);  // maybe null
+    std::unique_ptr<LogicalOperator> top_oper = std::move(outside_prev_oper);  // maybe null
 
     if (select_stmt->filter_stmt() != nullptr) {
-      unique_ptr<LogicalOperator> predicate_oper;
+      std::unique_ptr<LogicalOperator> predicate_oper;
       rc = create_plan(select_stmt->filter_stmt(), predicate_oper);
       if (rc != RC::SUCCESS) {
         LOG_WARN("failed to create predicate logical plan. rc=%s", strrc(rc));
@@ -210,7 +184,7 @@ private:
       // 为 groupby_oper 加一个sort 子算子
       // 1.先构造 orderby_unit
       auto                                &group_fields = select_stmt->groupby_stmt()->get_groupby_fields();
-      std::vector<unique_ptr<OrderByUnit>> order_units;
+      std::vector<std::unique_ptr<OrderByUnit>> order_units;
       for (auto &expr : group_fields) {
         order_units.emplace_back(
             std::make_unique<OrderByUnit>(expr->deep_copy().release(), true));  // 这里指针需要深拷贝一份给 order by
@@ -228,7 +202,7 @@ private:
       }
 
       if (!select_stmt->groupby_stmt()->get_groupby_fields().empty()) {
-        unique_ptr<LogicalOperator> orderby_oper(
+        std::unique_ptr<LogicalOperator> orderby_oper(
             new OrderByLogicalOperator(std::move(order_units), std::move(field_exprs)));
         if (top_oper) {
           orderby_oper->add_child(std::move(top_oper));
@@ -236,7 +210,7 @@ private:
         top_oper = std::move(orderby_oper);
       }
 
-      unique_ptr<LogicalOperator> groupby_oper;
+      std::unique_ptr<LogicalOperator> groupby_oper;
       rc = create_plan(select_stmt->groupby_stmt(), groupby_oper);
       if (rc != RC::SUCCESS) {
         LOG_WARN("failed to create groupby logical plan. rc=%s", strrc(rc));
@@ -255,7 +229,7 @@ private:
     }
 
     if (select_stmt->having_stmt() != nullptr) {
-      unique_ptr<LogicalOperator> predicate_oper;
+      std::unique_ptr<LogicalOperator> predicate_oper;
       rc = create_plan(select_stmt->having_stmt(), predicate_oper);
       if (rc != RC::SUCCESS) {
         LOG_WARN("failed to create having predicate logical plan. rc=%s", strrc(rc));
@@ -270,7 +244,7 @@ private:
     }
 
     if (select_stmt->orderby_stmt()) {
-      unique_ptr<LogicalOperator> orderby_oper;
+      std::unique_ptr<LogicalOperator> orderby_oper;
       rc = create_plan(select_stmt->orderby_stmt(), orderby_oper);
       if (rc != RC::SUCCESS) {
         LOG_WARN("failed to create orderby logical plan. rc=%s", strrc(rc));
@@ -296,10 +270,10 @@ private:
     return RC::SUCCESS;
   }
 
-  std::unique_ptr<PredicateLogicalOperator> cmp_exprs2predicate_logic_oper(std::vector<unique_ptr<Expression>> cmp_exprs)
+  std::unique_ptr<PredicateLogicalOperator> cmp_exprs2predicate_logic_oper(std::vector<std::unique_ptr<Expression>> cmp_exprs)
   {
     if (!cmp_exprs.empty()) {
-      unique_ptr<ConjunctionExpr> conjunction_expr(
+      std::unique_ptr<ConjunctionExpr> conjunction_expr(
           new ConjunctionExpr(ConjunctionExpr::Type::AND, std::move(cmp_exprs)));
       return std::make_unique<PredicateLogicalOperator>(std::move(conjunction_expr));
     }
@@ -310,7 +284,7 @@ private:
     if (filter_stmt == nullptr || filter_stmt->condition() == nullptr) {
       return {};
     }
-    std::vector<unique_ptr<Expression>> cmp_exprs;
+    std::vector<std::unique_ptr<Expression>> cmp_exprs;
     // 给子查询生成 logical oper
     auto process_sub_query = [](Expression *expr) {
       if (expr->type() == ExprType::SUBQUERY) {
@@ -329,7 +303,7 @@ private:
 
   static RC create_plan(InsertStmt* insert_stmt, std::unique_ptr<LogicalOperator>& logical_operator) {
     Table                *table = insert_stmt->table();
-    vector<vector<Value>> values;
+    std::vector<std::vector<Value>> values;
     for (int i = 0; i < insert_stmt->values().size(); ++i) {
       values.emplace_back(insert_stmt->values()[i]);
     }
@@ -346,15 +320,15 @@ private:
       const FieldMeta *field_meta = table->table_meta().field(i);
       fields.push_back(Field(table, field_meta));
     }
-    unique_ptr<LogicalOperator> table_get_oper(new TableGetLogicalOperator(table, fields, false /*readonly*/));
+    std::unique_ptr<LogicalOperator> table_get_oper(new TableGetLogicalOperator(table, fields, false /*readonly*/));
 
-    unique_ptr<LogicalOperator> predicate_oper;
+    std::unique_ptr<LogicalOperator> predicate_oper;
     RC                          rc = create_plan(filter_stmt, predicate_oper);
     if (rc != RC::SUCCESS) {
       return rc;
     }
 
-    unique_ptr<LogicalOperator> delete_oper(new DeleteLogicalOperator(table));
+    std::unique_ptr<LogicalOperator> delete_oper(new DeleteLogicalOperator(table));
 
     if (predicate_oper) {
       predicate_oper->add_child(std::move(table_get_oper));
@@ -368,14 +342,14 @@ private:
   }
   static RC create_plan(ExplainStmt* explain_stmt, std::unique_ptr<LogicalOperator>& logical_operator) {
     Stmt                       *child_stmt = explain_stmt->child();
-    unique_ptr<LogicalOperator> child_oper;
+    std::unique_ptr<LogicalOperator> child_oper;
     RC                          rc = create(child_stmt, child_oper);
     if (rc != RC::SUCCESS) {
       LOG_WARN("failed to create explain's child operator. rc=%s", strrc(rc));
       return rc;
     }
 
-    logical_operator = unique_ptr<LogicalOperator>(new ExplainLogicalOperator);
+    logical_operator = std::unique_ptr<LogicalOperator>(new ExplainLogicalOperator);
     logical_operator->add_child(std::move(child_oper));
     return rc;
   }
@@ -410,7 +384,7 @@ private:
         return rc;
       }
     }
-    unique_ptr<LogicalOperator> update_oper(
+    std::unique_ptr<LogicalOperator> update_oper(
         new UpdateLogicalOperator(table, std::move(update_stmt->values()), update_stmt->update_fields()));
 
     if (predicate_oper) {
@@ -430,7 +404,7 @@ private:
       return RC::SUCCESS;
     }
 
-    unique_ptr<LogicalOperator> groupby_oper(new GroupByLogicalOperator(std::move(group_by_stmt->get_groupby_fields()),
+    std::unique_ptr<LogicalOperator> groupby_oper(new GroupByLogicalOperator(std::move(group_by_stmt->get_groupby_fields()),
         std::move(groupby_stmt->get_agg_exprs()),
         std::move(groupby_stmt->get_field_exprs())));
     logical_operator = std::move(groupby_oper);
@@ -443,7 +417,7 @@ private:
       return RC::SUCCESS;
     }
 
-    unique_ptr<LogicalOperator> orderby_oper(new OrderByLogicalOperator(
+    std::unique_ptr<LogicalOperator> orderby_oper(new OrderByLogicalOperator(
         std::move(orderby_stmt->get_orderby_units()), std::move(orderby_stmt->get_exprs())));
     logical_operator = std::move(orderby_oper);
     return RC::SUCCESS;
