@@ -40,46 +40,6 @@ See the Mulan PSL v2 for more details. */
 using namespace std;
 using namespace common;
 
-RC LogicalPlanGenerator::create(Stmt *stmt, unique_ptr<LogicalOperator> &logical_operator)
-{
-  RC rc = RC::SUCCESS;
-  switch (stmt->type()) {
-    case StmtType::CALC: {
-      CalcStmt *calc_stmt = static_cast<CalcStmt *>(stmt);
-
-      rc = create_plan(calc_stmt, logical_operator);
-    } break;
-
-    case StmtType::SELECT: {
-      SelectStmt *select_stmt = static_cast<SelectStmt *>(stmt);
-
-      rc = create_plan(select_stmt, logical_operator);
-    } break;
-
-    case StmtType::INSERT: {
-      InsertStmt *insert_stmt = static_cast<InsertStmt *>(stmt);
-
-      rc = create_plan(insert_stmt, logical_operator);
-    } break;
-
-    case StmtType::DELETE: {
-      DeleteStmt *delete_stmt = static_cast<DeleteStmt *>(stmt);
-
-      rc = create_plan(delete_stmt, logical_operator);
-    } break;
-
-    case StmtType::EXPLAIN: {
-      ExplainStmt *explain_stmt = static_cast<ExplainStmt *>(stmt);
-
-      rc = create_plan(explain_stmt, logical_operator);
-    } break;
-    default: {
-      rc = RC::UNIMPLENMENT;
-    }
-  }
-  return rc;
-}
-
 RC LogicalPlanGenerator::create_plan(CalcStmt *calc_stmt, std::unique_ptr<LogicalOperator> &logical_operator)
 {
   logical_operator.reset(new CalcLogicalOperator(std::move(calc_stmt->expressions())));
