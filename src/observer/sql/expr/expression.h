@@ -251,7 +251,7 @@ private:
   Field field_;
   const std::string table_name_;
   const std::string field_name_;
-  int index_ = -1;
+  int index = -1;
   bool is_first = true;
 };
 
