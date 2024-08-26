@@ -695,7 +695,7 @@ unique_ptr<Aggregator> AggregateExpr::create_aggregator() const
 
 RC AggregateExpr::get_value(const Tuple &tuple, Value &value) 
 {
-  TupleCellSpec spec(name().c_str());
+  TupleCellSpec spec(name());
 
   if (is_first) {
     bool &is_first_ref = const_cast<bool &>(is_first);
