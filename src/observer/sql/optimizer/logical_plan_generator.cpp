@@ -14,28 +14,6 @@ See the Mulan PSL v2 for more details. */
 
 #include "sql/optimizer/logical_plan_generator.h"
 
-#include <common/log/log.h>
-
-#include "sql/operator/calc_logical_operator.h"
-#include "sql/operator/delete_logical_operator.h"
-#include "sql/operator/explain_logical_operator.h"
-#include "sql/operator/insert_logical_operator.h"
-#include "sql/operator/join_logical_operator.h"
-#include "sql/operator/logical_operator.h"
-#include "sql/operator/predicate_logical_operator.h"
-#include "sql/operator/project_logical_operator.h"
-#include "sql/operator/table_get_logical_operator.h"
-#include "sql/operator/group_by_logical_operator.h"
-
-#include "sql/stmt/calc_stmt.h"
-#include "sql/stmt/delete_stmt.h"
-#include "sql/stmt/explain_stmt.h"
-#include "sql/stmt/filter_stmt.h"
-#include "sql/stmt/insert_stmt.h"
-#include "sql/stmt/select_stmt.h"
-#include "sql/stmt/stmt.h"
-
-#include "sql/expr/expression_iterator.h"
 
 using namespace std;
 using namespace common;
