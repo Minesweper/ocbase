@@ -54,7 +54,7 @@ RC CompositeTuple::find_cell(const TupleCellSpec &spec, Value &cell, int &index)
 {
   RC rc = RC::NOTFOUND;
   for (const auto &tuple : tuples_) {
-    rc = tuple->find_cell(spec, cell);
+    rc = tuple->find_cell(spec, cell, index);
     if (OB_SUCC(rc)) {
       break;
     }
