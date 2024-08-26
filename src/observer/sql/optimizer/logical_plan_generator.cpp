@@ -40,7 +40,7 @@ See the Mulan PSL v2 for more details. */
 using namespace std;
 using namespace common;
 
-static RC LogicalPlanGenerator::create(Stmt *stmt, unique_ptr<LogicalOperator> &logical_operator)
+RC LogicalPlanGenerator::create(Stmt *stmt, unique_ptr<LogicalOperator> &logical_operator)
 {
   RC rc = RC::SUCCESS;
   switch (stmt->type()) {

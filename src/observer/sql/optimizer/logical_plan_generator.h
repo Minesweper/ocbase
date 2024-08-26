@@ -33,7 +33,7 @@ public:
   LogicalPlanGenerator()          = default;
   virtual ~LogicalPlanGenerator() = default;
 
-  static RC create(Stmt *stmt, std::unique_ptr<LogicalOperator> &logical_operator);
+  RC create(Stmt *stmt, std::unique_ptr<LogicalOperator> &logical_operator);
 
 private:
   RC create_plan(CalcStmt *calc_stmt, std::unique_ptr<LogicalOperator> &logical_operator);
