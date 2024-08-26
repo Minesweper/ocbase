@@ -700,9 +700,9 @@ RC AggregateExpr::get_value(const Tuple &tuple, Value &value)
   if (is_first) {
     bool &is_first_ref = const_cast<bool &>(is_first);
     is_first_ref       = false;
-    return tuple.find_cell(spec, cell, const_cast<int &>(index));
+    return tuple.find_cell(spec, value, const_cast<int &>(index));
   } else {
-    return tuple.cell_at(index, cell);
+    return tuple.cell_at(index, value);
   }
 }
 
