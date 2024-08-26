@@ -100,6 +100,43 @@ public:
     }
     return str;
   }
+  virtual RC compare(const Tuple &other, int &result) const
+  {
+    RC rc = RC::SUCCESS;
+
+    const int this_cell_num  = this->cell_num();
+    const int other_cell_num = other.cell_num();
+    if (this_cell_num < other_cell_num) {
+      result = -1;
+      return rc;
+    }
+    if (this_cell_num > other_cell_num) {
+      result = 1;
+      return rc;
+    }
+
+    Value this_value;
+    Value other_value;
+    for (int i = 0; i < this_cell_num; i++) {
+      rc = this->cell_at(i, this_value);
+      if (OB_FAIL(rc)) {
+        return rc;
+      }
+
+      rc = other.cell_at(i, other_value);
+      if (OB_FAIL(rc)) {
+        return rc;
+      }
+
+      result = this_value.compare(other_value);
+      if (0 != result) {
+        return rc;
+      }
+    }
+
+    result = 0;
+    return rc;
+  }
 };
 
 /**
