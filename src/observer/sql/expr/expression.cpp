@@ -695,7 +695,15 @@ unique_ptr<Aggregator> AggregateExpr::create_aggregator() const
 
 RC AggregateExpr::get_value(const Tuple &tuple, Value &value) 
 {
-  return tuple.find_cell(TupleCellSpec(name()), value);
+  TupleCellSpec spec(name().c_str());
+
+  if (is_first) {
+    bool &is_first_ref = const_cast<bool &>(is_first);
+    is_first_ref       = false;
+    return tuple.find_cell(spec, cell, const_cast<int &>(index));
+  } else {
+    return tuple.cell_at(index, cell);
+  }
 }
 
 RC AggregateExpr::type_from_string(const char *type_str, AggregateExpr::Type &type)

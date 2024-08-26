@@ -682,6 +682,9 @@ public:
 private:
   Type                        aggregate_type_;
   std::unique_ptr<Expression> child_;
+  bool                        is_constexpr = false;
+  bool                        is_first     = true;
+  int                         index        = -1;
 };
 
 class SelectStmt;
