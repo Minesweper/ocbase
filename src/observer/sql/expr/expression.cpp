@@ -41,7 +41,7 @@ std::string month_name[] = {"",
 RC FieldExpr::get_value(const Tuple &tuple, Value &value) 
 {
   if (is_first) {
-    bool &is_first_ref = const_cast<bool &>(is_first_);
+    bool &is_first_ref = const_cast<bool &>(is_first);
     is_first_ref       = false;
     return tuple.find_cell(TupleCellSpec(table_name(), field_name()), value, const_cast<int &>(index));
   } else {
