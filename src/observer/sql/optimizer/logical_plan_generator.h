@@ -316,7 +316,7 @@ private:
       const FieldMeta *field_meta = table->table_meta().field(i);
       fields.push_back(Field(table, field_meta));
     }
-    std::unique_ptr<LogicalOperator> table_get_oper(new TableGetLogicalOperator(table, fields, false /*readonly*/));
+    std::unique_ptr<LogicalOperator> table_get_oper(new TableGetLogicalOperator(table, fields, ReadWriteMode::READ_WRITE));
 
     std::unique_ptr<LogicalOperator> predicate_oper;
     RC                          rc = create_plan(filter_stmt, predicate_oper);
@@ -357,7 +357,7 @@ private:
       const FieldMeta *field_meta = table->table_meta().field(i);
       fields.push_back(Field(table, field_meta));
     }
-    std::unique_ptr<LogicalOperator> table_get_oper(new TableGetLogicalOperator(table, fields, false /*readonly*/));
+    std::unique_ptr<LogicalOperator> table_get_oper(new TableGetLogicalOperator(table, fields, ReadWriteMode::READ_WRITE));
 
     std::unique_ptr<LogicalOperator> predicate_oper;
     RC                          rc = RC::SUCCESS;
