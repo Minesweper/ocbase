@@ -17,7 +17,7 @@
 #include "sql/operator/project_logical_operator.h"
 #include "sql/operator/explain_logical_operator.h"
 #include "sql/operator/update_logical_operator.h"
-#include "sql/operator/groupby_logical_operator.h"
+#include "sql/operator/group_by_logical_operator.h"
 #include "sql/operator/orderby_logical_operator.h"
 
 #include "sql/stmt/stmt.h"
@@ -59,10 +59,6 @@ public:
         rc                  = create_plan(calc_stmt, logical_operator);
       } break;
 
-      case StmtType::CREATE_TABLE: {
-        CreateTableStmt *create_table_stmt = static_cast<CreateTableStmt *>(stmt);
-        rc                                 = create_plan(create_table_stmt, logical_operator);
-      } break;
 
       case StmtType::SELECT: {
         SelectStmt *select_stmt = static_cast<SelectStmt *>(stmt);
@@ -404,7 +400,7 @@ private:
       return RC::SUCCESS;
     }
 
-    std::unique_ptr<LogicalOperator> groupby_oper(new GroupByLogicalOperator(std::move(group_by_stmt->get_groupby_fields()),
+    std::unique_ptr<LogicalOperator> groupby_oper(new GroupByLogicalOperator(std::move(groupby_stmt->get_groupby_fields()),
         std::move(groupby_stmt->get_agg_exprs()),
         std::move(groupby_stmt->get_field_exprs())));
     logical_operator = std::move(groupby_oper);
