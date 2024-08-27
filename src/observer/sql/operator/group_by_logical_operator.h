@@ -15,21 +15,28 @@ See the Mulan PSL v2 for more details. */
 #pragma once
 
 #include "sql/operator/logical_operator.h"
+#include "sql/parser/parse_defs.h"
+#include "sql/parser/value.h"
+#include "storage/field/field.h"
+#include "sql/stmt/groupby_stmt.h"
 
 class GroupByLogicalOperator : public LogicalOperator
 {
 public:
-  GroupByLogicalOperator(
-      std::vector<std::unique_ptr<Expression>> &&group_by_exprs, std::vector<Expression *> &&expressions);
-
+  GroupByLogicalOperator(std::vector<std::unique_ptr<Expression>> &&group_by_exprs,
+      std::vector<std::unique_ptr<AggrFuncExpr>>                  &&expressions);
+  GroupByLogicalOperator(std::vector<std::unique_ptr<Expression>> &&groupby_fields,
+      std::vector<std::unique_ptr<AggrFuncExpr>> &&agg_exprs, std::vector<std::unique_ptr<FieldExpr>> &&field_exprs);
   virtual ~GroupByLogicalOperator() = default;
 
   LogicalOperatorType type() const override { return LogicalOperatorType::GROUP_BY; }
 
-  auto &group_by_expressions() { return group_by_expressions_; }
-  auto &aggregate_expressions() { return aggregate_expressions_; }
+  std::vector<std::unique_ptr<Expression>> &group_by_expressions() { return group_by_expressions_; }
+  std::vector<std::unique_ptr<AggrFuncExpr>> &aggregate_expressions() { return aggregate_expressions_; }
+  std::vector<std::unique_ptr<FieldExpr>> &field_exprs() { return field_exprs_; }
 
 private:
   std::vector<std::unique_ptr<Expression>> group_by_expressions_;
-  std::vector<Expression *>                aggregate_expressions_;  ///< 输出的表达式，可能包含聚合函数
+  std::vector<std::unique_ptr<AggrFuncExpr>> aggregate_expressions_;  ///< 输出的表达式，可能包含聚合函数
+  std::vector<std::unique_ptr<FieldExpr>>  field_exprs_;
 };

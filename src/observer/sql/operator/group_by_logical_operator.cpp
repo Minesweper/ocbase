@@ -18,11 +18,12 @@ See the Mulan PSL v2 for more details. */
 #include "sql/operator/group_by_logical_operator.h"
 #include "sql/expr/expression.h"
 
-using namespace std;
 
-GroupByLogicalOperator::GroupByLogicalOperator(vector<unique_ptr<Expression>> &&group_by_exprs,
-                                               vector<Expression *> &&expressions)
-{
-  group_by_expressions_ = std::move(group_by_exprs);
-  aggregate_expressions_ = std::move(expressions);
-}
+GroupByLogicalOperator::GroupByLogicalOperator(
+    std::vector<std::unique_ptr<Expression>> &&group_by_exprs, std::vector<std::unique_ptr<AggrFuncExpr>> &&expressions)
+    : group_by_expressions_(std::move(group_by_exprs)), aggregate_expressions_(std::move(expressions))
+{}
+GroupByLogicalOperator::GroupByLogicalOperator(std::vector<std::unique_ptr<Expression>> &&groupby_fields,
+    std::vector<std::unique_ptr<AggrFuncExpr>> &&agg_exprs, std::vector<std::unique_ptr<FieldExpr>> &&field_exprs)
+    : group_by_expressions_(std::move(groupby_fields)), aggregate_expressions_(std::move(agg_exprs)), field_exprs_(std::move(field_exprs))
+{}
