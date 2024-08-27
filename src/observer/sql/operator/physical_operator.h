@@ -51,6 +51,7 @@ enum class PhysicalOperatorType
   DELETE,
   INSERT,
   UPDATE,
+  CREATE_TABLE,
   SCALAR_GROUP_BY,
   HASH_GROUP_BY,
   GROUP_BY_VEC,
