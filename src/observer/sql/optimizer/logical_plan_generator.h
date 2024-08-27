@@ -107,7 +107,7 @@ private:
 
     auto process_one_table = [](std::unique_ptr<LogicalOperator> &prev_oper, Table *table, FilterStmt *fu) {
       std::vector<Field> fields;  
-      std::unique_ptr<LogicalOperator> table_get_oper(new TableGetLogicalOperator(table, fields, true /*readonly*/));
+      std::unique_ptr<LogicalOperator> table_get_oper(new TableGetLogicalOperator(table, fields, true));
       std::unique_ptr<LogicalOperator> predicate_oper;
       if (nullptr != fu) {
         if (RC rc = LogicalPlanGenerator::create_plan(fu, predicate_oper); rc != RC::SUCCESS) {
