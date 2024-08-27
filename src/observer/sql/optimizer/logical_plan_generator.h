@@ -307,6 +307,7 @@ private:
     logical_operator.reset(insert_operator);
     return RC::SUCCESS;
   }
+
   static RC create_plan(DeleteStmt* delete_stmt, std::unique_ptr<LogicalOperator>& logical_operator) {
     Table             *table       = delete_stmt->table();
     FilterStmt        *filter_stmt = delete_stmt->filter_stmt();
