@@ -269,8 +269,7 @@ private:
   std::unique_ptr<PredicateLogicalOperator> cmp_exprs2predicate_logic_oper(std::vector<std::unique_ptr<Expression>> cmp_exprs)
   {
     if (!cmp_exprs.empty()) {
-      std::unique_ptr<ConjunctionExpr> conjunction_expr(
-          new ConjunctionExpr(ConjunctionExpr::Type::AND, std::move(cmp_exprs)));
+      std::unique_ptr<ConjunctionExpr> conjunction_expr(new ConjunctionExpr(ConjunctionExpr::Type::AND, cmp_exprs));
       return std::make_unique<PredicateLogicalOperator>(std::move(conjunction_expr));
     }
     return {};
