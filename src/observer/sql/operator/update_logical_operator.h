@@ -10,11 +10,10 @@
 class UpdateLogicalOperator : public LogicalOperator
 {
 public:
-  UpdateLogicalOperator::UpdateLogicalOperator(
-      Table *table, std::vector<std::unique_ptr<Expression>> &&values, std::vector<FieldMeta> &fields)
+  UpdateLogicalOperator(Table *table, std::vector<std::unique_ptr<Expression>> &&values, std::vector<FieldMeta> &fields)
       : table_(table), values_(std::move(values)), fields_(fields)
   {}
-  virtual ~UpdateLogicalOperator() = default;
+  ~UpdateLogicalOperator() = default;
 
   LogicalOperatorType type() const override { return LogicalOperatorType::UPDATE; }
 
