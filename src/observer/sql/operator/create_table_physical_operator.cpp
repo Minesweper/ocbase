@@ -2,6 +2,7 @@
 #include "storage/trx/trx.h"
 #include "storage/table/table.h"
 #include "storage/record/record.h"
+#include "storage/db/db.h"
 #include "sql/operator/create_table_physical_operator.h"
 
 RC CreateTablePhysicalOperator::open(Trx *trx)
@@ -18,7 +19,7 @@ RC CreateTablePhysicalOperator::open(Trx *trx)
   }
 
   const int attr_count = attr_infos_.size();
-  rc                   = db_->create_table(table_name_.c_str(), attr_count, attr_infos_.data());
+  rc                   = db_->create_table(table_name_.c_str(), span(attr_infos_), StorageFormat::ROW_FORMAT);
   if (RC::SUCCESS != rc) {
     LOG_WARN("failed to create table %s, rc=%s", table_name_.c_str(), strrc(rc));
     return rc;

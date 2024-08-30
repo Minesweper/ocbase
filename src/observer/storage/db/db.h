@@ -24,6 +24,7 @@ See the Mulan PSL v2 for more details. */
 #include "storage/buffer/disk_buffer_pool.h"
 #include "storage/clog/disk_log_handler.h"
 #include "storage/buffer/double_write_buffer.h"
+#include <unordered_map>
 
 class Table;
 class LogHandler;
@@ -80,7 +81,7 @@ public:
   const char *name() const;
 
   /// @brief 列出所有的表
-  void all_tables(vector<string> &table_names) const;
+  void all_tables(std::vector<std::string> &table_names) const;
 
   /**
    * @brief 将所有内存中的数据，刷新到磁盘中。
@@ -112,12 +113,12 @@ private:
   RC init_dblwr_buffer();
 
 private:
-  string                         name_;                 ///< 数据库名称
-  string                         path_;                 ///< 数据库文件存放的目录
-  unordered_map<string, Table *> opened_tables_;        ///< 当前所有打开的表
-  unique_ptr<BufferPoolManager>  buffer_pool_manager_;  ///< 当前数据库的buffer pool管理器
-  unique_ptr<LogHandler>         log_handler_;          ///< 当前数据库的日志处理器
-  unique_ptr<TrxKit>             trx_kit_;              ///< 当前数据库的事务管理器
+  std::string                         name_;                 ///< 数据库名称
+  std::string                         path_;                 ///< 数据库文件存放的目录
+  std::unordered_map<std::string, Table *> opened_tables_;        ///< 当前所有打开的表
+  std::unique_ptr<BufferPoolManager>  buffer_pool_manager_;  ///< 当前数据库的buffer pool管理器
+  std::unique_ptr<LogHandler>         log_handler_;          ///< 当前数据库的日志处理器
+  std::unique_ptr<TrxKit>             trx_kit_;              ///< 当前数据库的事务管理器
 
   /// 给每个table都分配一个ID，用来记录日志。这里假设所有的DDL都不会并发操作，所以相关的数据都不上锁
   int32_t next_table_id_ = 0;
