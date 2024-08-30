@@ -21,33 +21,14 @@ except:
 _logger = logging.getLogger('MiniOBTest')
 
 """
-Case程序自动化运行脚本
-测试流程：
-编译源码 ->
-获取测试用例文件 ->
-启动observer ->
-执行测试用例 ->
-对比执行结果与预先设置的结果文件
-输出结果
-
-- 源码路径即为脚本所在路径
-- 默认结果会输出在控制台上
-- 默认的工作目录，就是测试程序执行时输出的文件，在 /tmp/miniob 下。
-- 编译源码：可以指定编译的cmake和make参数。也可以跳过这个步骤。
-- 测试用例文件：测试用例文件都以.test结尾，当前放在test目录下
-- 测试结果文件：预先设置的结果文件，以.result结尾，放在result目录下
-- 启动observer: 启动observer，使用unix socket，这样可以每个observer使用自己的socket文件
-- 执行测试用例：测试用例文件中，每行都是一个命令。命令可以是SQL语句，也可以是预先定义的命令，比如 echo，sort等
-- 测试：使用参数直接连接已经启动的observer
-
 How to use:
-运行所有测试用例：
+
 python3 miniob_test.py
 
-运行 basic 测试用例
+
 python3 miniob_test.py --test-cases=basic
 
-如果要运行多个测试用例，则在 --test-cases 参数中使用 ',' 分隔写多个即可
+
 """
 
 class TimeoutException(BaseException):
@@ -71,9 +52,6 @@ def __get_build_path(work_dir: str):
   return work_dir + '/' + GlobalConfig.source_code_build_path_name
 
 class ResultWriter:
-  '''
-  写数据到指定文件，当前用于输出测试结果
-  '''
 
   def __init__(self, file):
     self.__file = file
@@ -94,10 +72,6 @@ class ResultWriter:
     self.write('\n')
 
 class MiniObServer:
-  '''
-  用来控制miniob的服务器程序。负责程序的启停和环境的初始化和清理工作
-  '''
-
   def __init__(self, base_dir: str, data_dir: str, config_file: str, server_port: int, server_socket: str, clean_data_dir: bool):
     self.__check_base_dir(base_dir)
     self.__check_data_dir(data_dir, clean_data_dir)
@@ -124,9 +98,6 @@ class MiniObServer:
       self.__process = None
 
   def __observer_path(self, base_dir: str):
-    '''
-    observer程序所在路径
-    '''
     return base_dir + "/bin/observer"
 
   def __default_config(self, base_dir: str):
@@ -161,10 +132,6 @@ class MiniObServer:
     # do nothing now
 
   def start_server(self) -> bool:
-    '''
-    启动服务端程序，并使用探测端口的方式检测程序是否正常启动
-    调试模式如果可以使用调试器启动程序就好了
-    '''
 
     if self.__process != None:
       _logger.warn("Server has already been started")
@@ -222,10 +189,6 @@ class MiniObServer:
     return True
 
   def clean(self):
-    ''' 
-    清理数据目录（如果没有配置调试模式）
-    调试模式可能需要查看服务器程序运行的日志
-    '''
 
     if GlobalConfig.debug is False:
       shutil.rmtree(self.__data_dir)
@@ -265,10 +228,6 @@ class MiniObServer:
     return False
 
 class MiniObClient:
-  '''
-  测试客户端。使用TCP连接，向服务器发送命令并反馈结果
-  '''
-
   def __init__(self, server_port: int, server_socket: str, time_limit:int = 10):
     if (server_port < 0 or server_port > 65535) and server_socket is None:
       raise(Exception("Invalid server port: " + str(server_port)))
@@ -336,8 +295,8 @@ class MiniObClient:
           result += result_tmp[0:-2]
           return result.strip() + '\n'
         else:
-          result += result_tmp # TODO 返回数据量比较大的时候，python可能会hang住
-                               # 可以考虑返回列表
+          result += result_tmp # TODO 
+                              
       else:
         _logger.info("receive from server error. result len=%d", len(data))
         raise Exception("receive return error. the connection may be closed")
@@ -398,9 +357,6 @@ class CommandRunner:
     self.__current_client = None
 
   def run_connection(self, name: str):
-    '''
-    切换当前连接
-    '''
 
     client = self.__clients[name]
     if client == None:
@@ -411,9 +367,6 @@ class CommandRunner:
     return True
 
   def run_connect(self, name: str):
-    '''
-    创建一个连接。每个连接有一个名字，可以使用使用connection name来切换当前的连接
-    '''
     name = name.strip()
     if len(name) == 0:
       _logger.error("Found empty client name")
@@ -433,10 +386,6 @@ class CommandRunner:
     return True
 
   def run_echo(self, arg: str):
-    '''
-    echo 命令。参数可以是#开头的注释，这里不关心
-    '''
-
     self.__result_writer.write_line(arg)
     return True
 
@@ -460,9 +409,6 @@ class CommandRunner:
     return result
 
   def run_command(self, command_line: str):
-    '''
-    执行一条命令。命令的参数使用空格分开, 第一个字符串是命令类型
-    '''
     command_line = command_line[len(self.__command_prefix) : ]
     command_line = command_line.lstrip()
     args = command_line.split(' ', 1)
@@ -490,7 +436,7 @@ class CommandRunner:
   def run_anything(self, argline: str):
     argline = argline.strip()
     if len(argline) == 0:
-      self.__result_writer.write_line('') # 读取到一个空行，也写入一个空行
+      self.__result_writer.write_line('') 
       return True
     
     if argline.startswith(self.__comment_prefix):
@@ -502,10 +448,7 @@ class CommandRunner:
     return self.run_sql(argline)
 
 class TestCase:
-  '''
-  表示一个测试用例
-  测试用例有一个名字和内容
-  '''
+
 
   def __init__(self):
     self.__name = ''
@@ -537,10 +480,6 @@ class TestCase:
     return result_file + '.tmp'
 
 class TestCaseLister:
-  '''
-  列出指定目录或者指定名称的测试用例
-  '''
-
   def __init__(self, suffix = None):
     if suffix != None:
       self.__suffix = suffix
@@ -621,17 +560,17 @@ class EvalResult:
 class TestSuite:
 
   def __init__(self):
-    self.__report_only = False # 本次测试为了获取测试结果，不是为了校验结果
+    self.__report_only = False 
     self.__test_case_base_dir = "./test"
     self.__test_result_base_dir = "./result"
-    self.__test_result_tmp_dir = "./result/tmp" # 生成的结果存放的临时目录
+    self.__test_result_tmp_dir = "./result/tmp" 
     self.__db_server_base_dir = None
     self.__db_data_dir = None
     self.__db_config = None
     self.__server_port = 0
-    self.__use_unix_socket = False # 如果指定unix socket，那么就不再使用TCP连接
+    self.__use_unix_socket = False 
     self.__need_start_server = True
-    self.__test_names = None # 如果指定测试哪些Case，就不再遍历所有的cases
+    self.__test_names = None 
     self.__miniob_server = None
   
   def set_test_names(self, tests):
@@ -736,11 +675,9 @@ class TestSuite:
     test_case_lister = TestCaseLister()
     test_cases = test_case_lister.list_directory(self.__test_case_base_dir)
 
-    if not self.__test_names: # 没有指定测试哪个case
+    if not self.__test_names: 
       return test_cases
 
-    # 指定了测试case，就从中捞出来
-    # 找出指定了要测试某个case，但是没有发现
     test_case_result = []
     for case_name in self.__test_names:
       found = False
@@ -757,7 +694,6 @@ class TestSuite:
 
   def run(self, eval_result: EvalResult):
 
-    # 找出所有需要测试Case
     test_cases = self.__get_all_test_cases()
     
     if not test_cases:
@@ -766,13 +702,12 @@ class TestSuite:
 
     _logger.info("Starting observer server")
 
-    # 测试每个Case
     success_count = 0
     failure_count = 0
     timeout_count = 0
     for test_case in test_cases:
       try:
-        # 每个case都清理并重启一下服务端，这样可以方式某个case core之后，还能测试其它case
+      
         self.__clean_server_if_need()
 
         result = self.__start_server_if_need(True)
@@ -832,37 +767,37 @@ class TestSuite:
   def __clean_server_if_need(self):
     if self.__miniob_server is not None:
       self.__miniob_server.stop_server()
-      # 不再清理掉中间结果。如果从解压代码开始，那么执行的中间结果不需要再清理，所有的数据都在临时目录
+      
       # self.__miniob_server.clean() 
       self.__miniob_server = None
 
 def __init_options():
   options_parser = ArgumentParser()
-  # 是否仅仅生成结果，而不对结果做校验。一般在新生成一个case时使用
+
   options_parser.add_argument('--report-only', action='store_true', dest='report_only', default=False, 
                             help='just report the result')
 
-  # 当前miniob的代码目录
+
   options_parser.add_argument('--project-dir', action='store', dest='project_dir', default='')
 
-  # 测试哪些用例。不指定就会扫描test-case-dir目录下面的所有测试用例。指定的话，就从test-case-dir目录下面按照名字找
+
   options_parser.add_argument('--test-cases', action='store', dest='test_cases', 
                             help='test cases. If none, we will iterate the test case directory. Split with \',\' if more than one')
 
-  # 测试时服务器程序的数据文件存放目录
+
   options_parser.add_argument('--work-dir', action='store', dest='work_dir', default='',
                             help='the directory of miniob database\'s data for test')
 
-  # 服务程序端口号，客户端也使用这个端口连接服务器。目前还不具备通过配置文件解析端口配置的能力
+
   options_parser.add_argument('--server-port', action='store', type=int, dest='server_port', default=6789,
                             help='the server port. should be the same with the value in the config')
   options_parser.add_argument('--not-use-unix-socket', action='store_true', dest='not_use_unix_socket', default=False,
                             help='If false, server-port will be ignored and will use a random address socket.')
   
-  # 测试过程中生成的日志存放的文件。使用stdout/stderr输出到控制台
+
   options_parser.add_argument('--log', action='store', dest='log_file', default='stdout',
                             help='log file. stdout=standard output and stderr=standard error')
-  # 是否启动调试模式。调试模式不会清理服务器的数据目录
+
   options_parser.add_argument('-d', '--debug', action='store_true', dest='debug', default=False,
                             help='enable debug mode')
 
@@ -870,7 +805,7 @@ def __init_options():
                             help='compile args used by make')
   options_parser.add_argument('--compile-cmake-args', action='store', dest='compile_cmake_args', default='',
                             help='compile args used by cmake')
-  # 之前已经编译过，是否需要重新编译，还是直接执行make就可以了
+
   options_parser.add_argument('--compile-rebuild', action='store_true', default=False, dest='compile_rebuild',
                             help='whether rebuild if build path exists')
 
@@ -947,16 +882,13 @@ def __init_test_suite_with_source_code(options, eval_result):
 
   _logger.info("compile source code done")
 
-  # 覆盖一些测试的路径
+
   _logger.info("some config will be override if exists")
   test_suite = __init_test_suite(options)
   return test_suite
 
 def __run_shell_command(command_args):
-  '''
-  运行shell命令，返回命令的执行结果码和输出到控制台的信息
-  返回的控制台信息是每行一个字符串的字符串列表
-  '''
+
 
   _logger.info("running command: '%s'", ' '.join(command_args))
 
@@ -991,10 +923,6 @@ def run_cmake(work_dir: str, build_path: str, cmake_args: str):
   return True, []
 
 def compile(work_dir: str, build_dir: str, cmake_args: str, make_args: str, rebuild_all: bool, eval_result: EvalResult):
-  '''
-  workd_dir是源代码所在目录(miniob目录)
-  build_dir 是编译结果的目录
-  '''
   if not os.path.exists(work_dir):
     _logger.error('The work_dir %s doesn\'t exist, please provide a vaild work path.', work_dir)
     return False
@@ -1010,7 +938,7 @@ def compile(work_dir: str, build_dir: str, cmake_args: str, make_args: str, rebu
   _logger.info("start compiling ... build path=%s", build_path)
   ret, outputs = run_cmake(work_dir, build_path, cmake_args)
   if ret == False:
-    # cmake 执行失败时，清空整个Build目录，再重新执行一次cmake命令
+   
     shutil.rmtree(build_path)
     os.makedirs(build_path, exist_ok=True)
     ret, outputs = run_cmake(work_dir, build_path, cmake_args)
@@ -1051,8 +979,7 @@ def run(options) -> Tuple[bool, str]:
 
   _logger.info("miniob test starting ...")
 
-  # 由于miniob-test测试程序导致的失败，才认为是失败
-  # 比如目录没有权限等，对miniob-test来说是成功的
+
   result = True
   eval_result = EvalResult()
 
