@@ -12,7 +12,6 @@
 .VSCodeCounter/*
 ./docs/doxy/
 build/*
-build_*
 cmake-build-*/*
 build
 .cache/*
