@@ -18,7 +18,7 @@ See the Mulan PSL v2 for more details. */
 #include "storage/table/table.h"
 
 /**
- * @brief 字段
+ * @brief Õ¡ùµ«Á
  *
  */
 class Field

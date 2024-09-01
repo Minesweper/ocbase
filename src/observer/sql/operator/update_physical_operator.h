@@ -10,7 +10,7 @@ class Trx;
 class UpdateStmt;
 
 /**
- * @brief ÎïÀíËã×Ó£¬¸üĞÂ
+ * @brief ç‰©ç†ç®—å­ï¼Œæ›´æ–°
  * @ingroup PhysicalOperator
  */
 class UpdatePhysicalOperator : public PhysicalOperator
@@ -39,13 +39,13 @@ public:
   RC next() override;
   RC close() override;
 
-  // ²éÕÒ´ı¸üĞÂÁĞµÄĞòºÅ¡¢Æ«ÒÆÁ¿¡¢³¤¶È¡¢ÀàĞÍ
+  // æŸ¥æ‰¾å¾…æ›´æ–°åˆ—çš„åºå·ã€åç§»é‡ã€é•¿åº¦ã€ç±»å‹
   RC find_target_columns();
 
-  // ¹¹ÔìĞÂµÄ Record
+  // æ„é€ æ–°çš„ Record
   RC construct_new_record(Record &old_record, Record &new_record);
 
-  // »Ø¹öÊ±Ê¹ÓÃ£¬´Ó¸üĞÂºó Record ¹¹Ôì³ö¸üĞÂÇ°µÄ
+  // å›æ»šæ—¶ä½¿ç”¨ï¼Œä»æ›´æ–°å Record æ„é€ å‡ºæ›´æ–°å‰çš„
   RC construct_old_record(Record &updated_record, Record &old_record);
 
   Tuple *current_tuple() override { return nullptr; }
@@ -59,9 +59,9 @@ private:
 
   std::vector<int>       fields_id_;
   std::vector<FieldMeta> fields_meta_;
-  char                  *tmp_record_data_ = nullptr;  // ÓÃÓÚ´æ·ÅĞÂµÄRecordµÄdata
+  char                  *tmp_record_data_ = nullptr;  // ç”¨äºå­˜æ”¾æ–°çš„Recordçš„data
 
-  // ´æ´¢ÒÑ¾­¸üĞÂ¹ıµÄĞĞÊı¾İ£¬ÓÃÓÚ»Ø¹ö
+  // å­˜å‚¨å·²ç»æ›´æ–°è¿‡çš„è¡Œæ•°æ®ï¼Œç”¨äºå›æ»š
   std::vector<RID>                old_rids_;
   std::vector<std::vector<Value>> old_values_;
   bool                            invalid_ = false;

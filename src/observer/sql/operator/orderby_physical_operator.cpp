@@ -33,10 +33,10 @@ RC OrderByPhysicalOperator::fetch_and_sort_tables()
 
   int                                        index = 0;
   typedef std::pair<std::vector<Value>, int> CmpPair;
-  std::vector<CmpPair>                       pair_sort_table;  // ÒªÅÅĞòµÄÄÚÈİ
-  std::vector<Value>                         pair_cell;        // ²ÎÓëÅÅĞòµÄÁĞ
+  std::vector<CmpPair>                       pair_sort_table;  // è¦æ’åºçš„å†…å®¹
+  std::vector<Value>                         pair_cell;        // å‚ä¸æ’åºçš„åˆ—
 
-  std::vector<Value> row_values(tuple_.exprs().size());  // »º´æÃ¿Ò»ĞĞ
+  std::vector<Value> row_values(tuple_.exprs().size());  // ç¼“å­˜æ¯ä¸€è¡Œ
   int                row_values_index = 0;
   // int i = 0;
   while (RC::SUCCESS == (rc = children_[0]->next())) {
@@ -55,7 +55,7 @@ RC OrderByPhysicalOperator::fetch_and_sort_tables()
     pair_sort_table.emplace_back(std::make_pair(pair_cell, index++)); 
     // store child records
 
-    // ´æ´¢select ºóµÄ fieldexpr µÄÖµ ºÍaggexpr µÄÖµ
+    // å­˜å‚¨select åçš„ fieldexpr çš„å€¼ å’Œaggexpr çš„å€¼
     Value expr_cell;
     for (auto &expr : tuple_.exprs()) {
       if (expr->get_value(*children_[0]->current_tuple(), expr_cell) != RC::SUCCESS) {
@@ -64,7 +64,7 @@ RC OrderByPhysicalOperator::fetch_and_sort_tables()
       }
       row_values[row_values_index++] = expr_cell;
     }
-    values_.emplace_back(row_values);  // values ÖĞ»º´æÃ¿Ò»ĞĞ
+    values_.emplace_back(row_values);  // values ä¸­ç¼“å­˜æ¯ä¸€è¡Œ
   }
   if (RC::RECORD_EOF != rc) {
     LOG_ERROR("Fetch Table Error In SortOperator. RC: %d", rc);
@@ -106,7 +106,7 @@ RC OrderByPhysicalOperator::fetch_and_sort_tables()
 
   // fill ordered_idx_
   for (size_t i = 0; i < pair_sort_table.size(); ++i) {
-    ordered_idx_.emplace_back(pair_sort_table[i].second);  // ½«Ô­À´µÄÃ¿ĞĞµÄ±ê¼ÇĞ´Èëorder_indexÊı×éÖĞ
+    ordered_idx_.emplace_back(pair_sort_table[i].second);  // å°†åŸæ¥çš„æ¯è¡Œçš„æ ‡è®°å†™å…¥order_indexæ•°ç»„ä¸­
   }
   it_ = ordered_idx_.begin();
 

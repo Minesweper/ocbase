@@ -14,7 +14,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/operator/physical_operator.h"
 
 /**
- * @brief Group By 物理算子(vectorized)
+ * @brief Group By þë®þÉåþ«ùÕ¡É(vectorized)
  * @ingroup PhysicalOperator
  */
 class GroupByVecPhysicalOperator : public PhysicalOperator

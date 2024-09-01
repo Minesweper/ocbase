@@ -37,7 +37,7 @@ public:
 
 private:
   std::vector<std::unique_ptr<Expression>>   groupby_fields_;  // group by clause
-  std::vector<std::unique_ptr<AggrFuncExpr>> agg_exprs_;       // ¾Û¼¯º¯Êı±í´ïÊ½
-  std::vector<std::unique_ptr<FieldExpr>> field_exprs_;  // ·Ç¾Û¼¯º¯ÊıÖĞµÄ×Ö¶Î±í´ïÊ½,ĞèÒª´«µİ¸øÏÂ²ãµÄ order by Ëã×Ó
+  std::vector<std::unique_ptr<AggrFuncExpr>> agg_exprs_;       // èšé›†å‡½æ•°è¡¨è¾¾å¼
+  std::vector<std::unique_ptr<FieldExpr>> field_exprs_;  // éèšé›†å‡½æ•°ä¸­çš„å­—æ®µè¡¨è¾¾å¼,éœ€è¦ä¼ é€’ç»™ä¸‹å±‚çš„ order by ç®—å­
   
 };

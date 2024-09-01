@@ -17,7 +17,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/stmt/stmt.h"
 
 /**
- * @brief explain语句
+ * @brief explainÞ»¡ÕÅÑ
  * @ingroup Statement
  */
 class ExplainStmt : public Stmt

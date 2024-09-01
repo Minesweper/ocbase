@@ -53,8 +53,8 @@ public:
       std::vector<std::unique_ptr<Expression>> &&exprs);
 
 private:
-  std::vector<std::unique_ptr<OrderByUnit>> orderby_units_;  // ÅÅĞòÁĞ
+  std::vector<std::unique_ptr<OrderByUnit>> orderby_units_;  // æ’åºåˆ—
 
-  /// ÔÚ create order by stmt Ö®Ç°ÌáÈ¡ select clause ºóµÄ field_expr (·Ça gg_expr ÖĞµÄ)ºÍ agg_expr
+  /// åœ¨ create order by stmt ä¹‹å‰æå– select clause åçš„ field_expr (éa gg_expr ä¸­çš„)å’Œ agg_expr
   std::vector<std::unique_ptr<Expression>> exprs_;
 };

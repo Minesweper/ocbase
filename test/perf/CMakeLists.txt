@@ -3,7 +3,7 @@
 #        PATH|ABSOLUTE|NAME|EXT|NAME_WE|REALPATH
 #        [CACHE])
 FILE(GLOB_RECURSE ALL_SRC *.cpp)
-# AUX_SOURCE_DIRECTORY 类似功能
+# AUX_SOURCE_DIRECTORY 邀ｻ莨ｼ蜉溯♧
 FOREACH (F ${ALL_SRC})
     get_filename_component(prjName ${F} NAME_WE)
     MESSAGE("Build ${prjName} according to ${F}")

@@ -21,7 +21,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/operator/string_list_physical_operator.h"
 
 /**
- * @brief Help语句执行器
+ * @brief HelpÞ»¡ÕÅÑµëºÞíîÕÖ¿
  * @ingroup Executor
  */
 class HelpExecutor

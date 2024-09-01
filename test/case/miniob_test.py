@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: UTF-8 -*-
 
 import os
 import json
@@ -21,6 +21,8 @@ except:
 _logger = logging.getLogger('MiniOBTest')
 
 """
+
+
 How to use:
 
 python3 miniob_test.py
@@ -53,6 +55,7 @@ def __get_build_path(work_dir: str):
 
 class ResultWriter:
 
+
   def __init__(self, file):
     self.__file = file
 
@@ -72,6 +75,8 @@ class ResultWriter:
     self.write('\n')
 
 class MiniObServer:
+
+
   def __init__(self, base_dir: str, data_dir: str, config_file: str, server_port: int, server_socket: str, clean_data_dir: bool):
     self.__check_base_dir(base_dir)
     self.__check_data_dir(data_dir, clean_data_dir)
@@ -98,6 +103,7 @@ class MiniObServer:
       self.__process = None
 
   def __observer_path(self, base_dir: str):
+
     return base_dir + "/bin/observer"
 
   def __default_config(self, base_dir: str):
@@ -133,6 +139,7 @@ class MiniObServer:
 
   def start_server(self) -> bool:
 
+
     if self.__process != None:
       _logger.warn("Server has already been started")
       return False
@@ -165,6 +172,7 @@ class MiniObServer:
 
     time_span = time.time() - time_begin
     _logger.info("miniob-server started in %f seconds", time_span)
+    # time.sleep(20)
     return True
 
   def stop_server(self):
@@ -189,6 +197,7 @@ class MiniObServer:
     return True
 
   def clean(self):
+
 
     if GlobalConfig.debug is False:
       shutil.rmtree(self.__data_dir)
@@ -228,7 +237,9 @@ class MiniObServer:
     return False
 
 class MiniObClient:
-  def __init__(self, server_port: int, server_socket: str, time_limit:int = 10):
+
+
+  def __init__(self, server_port: int, server_socket: str, time_limit:int = 300):
     if (server_port < 0 or server_port > 65535) and server_socket is None:
       raise(Exception("Invalid server port: " + str(server_port)))
 
@@ -295,8 +306,8 @@ class MiniObClient:
           result += result_tmp[0:-2]
           return result.strip() + '\n'
         else:
-          result += result_tmp # TODO 
-                              
+          result += result_tmp # TODO
+
       else:
         _logger.info("receive from server error. result len=%d", len(data))
         raise Exception("receive return error. the connection may be closed")
@@ -367,6 +378,7 @@ class CommandRunner:
     return True
 
   def run_connect(self, name: str):
+
     name = name.strip()
     if len(name) == 0:
       _logger.error("Found empty client name")
@@ -386,6 +398,7 @@ class CommandRunner:
     return True
 
   def run_echo(self, arg: str):
+
     self.__result_writer.write_line(arg)
     return True
 
@@ -409,6 +422,7 @@ class CommandRunner:
     return result
 
   def run_command(self, command_line: str):
+
     command_line = command_line[len(self.__command_prefix) : ]
     command_line = command_line.lstrip()
     args = command_line.split(' ', 1)
@@ -436,7 +450,7 @@ class CommandRunner:
   def run_anything(self, argline: str):
     argline = argline.strip()
     if len(argline) == 0:
-      self.__result_writer.write_line('') 
+      self.__result_writer.write_line('')
       return True
     
     if argline.startswith(self.__comment_prefix):
@@ -448,7 +462,6 @@ class CommandRunner:
     return self.run_sql(argline)
 
 class TestCase:
-
 
   def __init__(self):
     self.__name = ''
@@ -480,6 +493,8 @@ class TestCase:
     return result_file + '.tmp'
 
 class TestCaseLister:
+
+
   def __init__(self, suffix = None):
     if suffix != None:
       self.__suffix = suffix
@@ -560,17 +575,17 @@ class EvalResult:
 class TestSuite:
 
   def __init__(self):
-    self.__report_only = False 
+    self.__report_only = False
     self.__test_case_base_dir = "./test"
     self.__test_result_base_dir = "./result"
-    self.__test_result_tmp_dir = "./result/tmp" 
+    self.__test_result_tmp_dir = "./result/tmp"
     self.__db_server_base_dir = None
     self.__db_data_dir = None
     self.__db_config = None
     self.__server_port = 0
-    self.__use_unix_socket = False 
+    self.__use_unix_socket = False
     self.__need_start_server = True
-    self.__test_names = None 
+    self.__test_names = None
     self.__miniob_server = None
   
   def set_test_names(self, tests):
@@ -675,8 +690,9 @@ class TestSuite:
     test_case_lister = TestCaseLister()
     test_cases = test_case_lister.list_directory(self.__test_case_base_dir)
 
-    if not self.__test_names: 
+    if not self.__test_names:
       return test_cases
+
 
     test_case_result = []
     for case_name in self.__test_names:
@@ -694,6 +710,7 @@ class TestSuite:
 
   def run(self, eval_result: EvalResult):
 
+
     test_cases = self.__get_all_test_cases()
     
     if not test_cases:
@@ -702,12 +719,13 @@ class TestSuite:
 
     _logger.info("Starting observer server")
 
+
     success_count = 0
     failure_count = 0
     timeout_count = 0
     for test_case in test_cases:
       try:
-      
+
         self.__clean_server_if_need()
 
         result = self.__start_server_if_need(True)
@@ -767,7 +785,7 @@ class TestSuite:
   def __clean_server_if_need(self):
     if self.__miniob_server is not None:
       self.__miniob_server.stop_server()
-      
+
       # self.__miniob_server.clean() 
       self.__miniob_server = None
 
@@ -905,7 +923,7 @@ def __run_shell_command(command_args):
       return return_code, outputs
 
 def run_cmake(work_dir: str, build_path: str, cmake_args: str):
-  cmake_command = ["cmake", "-B", build_path, "--log-level=WARNING"]
+  cmake_command = ["cmake", "-B", build_path, "--log-level=TRACE"]
   if isinstance(cmake_args, str):
     args = cmake_args.split(';')
     for arg in args:
@@ -923,6 +941,7 @@ def run_cmake(work_dir: str, build_path: str, cmake_args: str):
   return True, []
 
 def compile(work_dir: str, build_dir: str, cmake_args: str, make_args: str, rebuild_all: bool, eval_result: EvalResult):
+
   if not os.path.exists(work_dir):
     _logger.error('The work_dir %s doesn\'t exist, please provide a vaild work path.', work_dir)
     return False
@@ -938,7 +957,7 @@ def compile(work_dir: str, build_dir: str, cmake_args: str, make_args: str, rebu
   _logger.info("start compiling ... build path=%s", build_path)
   ret, outputs = run_cmake(work_dir, build_path, cmake_args)
   if ret == False:
-   
+
     shutil.rmtree(build_path)
     os.makedirs(build_path, exist_ok=True)
     ret, outputs = run_cmake(work_dir, build_path, cmake_args)

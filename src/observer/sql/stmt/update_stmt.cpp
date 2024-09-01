@@ -55,7 +55,7 @@ RC UpdateStmt::create(Db *db, UpdateSqlNode &update, Stmt *&stmt)
       return RC::INTERNAL;
     }
     if (expr->type() == ExprType::SUBQUERY) {
-      // Ìõ¼ş±í´ïÊ½Àï²ÅÓĞ×Ó²éÑ¯
+      // æ¡ä»¶è¡¨è¾¾å¼é‡Œæ‰æœ‰å­æŸ¥è¯¢
       SubQueryExpr *subquery_expr = static_cast<SubQueryExpr *>(expr);
       return subquery_expr->generate_select_stmt(db, {});
     }
@@ -63,8 +63,8 @@ RC UpdateStmt::create(Db *db, UpdateSqlNode &update, Stmt *&stmt)
   };
   // check fields type
   // update t1 set c1 = 1;
-  // 1.¼ì²é ±ít1 ÓĞÃ»ÓĞc1 ÁĞ
-  // 2.¼ì²é c1 ÁĞµÄÀàĞÍ Óë 1 ÊÇ·ñÆ¥Åä
+  // 1.æ£€æŸ¥ è¡¨t1 æœ‰æ²¡æœ‰c1 åˆ—
+  // 2.æ£€æŸ¥ c1 åˆ—çš„ç±»å‹ ä¸ 1 æ˜¯å¦åŒ¹é…
   std::vector<std::unique_ptr<Expression>> values;
   std::vector<FieldMeta>                   fields;
   const TableMeta                         &table_meta = table->table_meta();
@@ -80,7 +80,7 @@ RC UpdateStmt::create(Db *db, UpdateSqlNode &update, Stmt *&stmt)
           } else {
             valid = true;
           }
-          // ½«²»È·¶¨³¤¶ÈµÄ char ¸ÄÎª¹Ì¶¨³¤¶ÈµÄ char
+          // å°†ä¸ç¡®å®šé•¿åº¦çš„ char æ”¹ä¸ºå›ºå®šé•¿åº¦çš„ char
           if (valid && CHARS == update_field->type()) {
             char *char_value = (char *)malloc(update_field->len());
             memset(char_value, 0, update_field->len());
@@ -105,7 +105,7 @@ RC UpdateStmt::create(Db *db, UpdateSqlNode &update, Stmt *&stmt)
         if (RC rc = update.values[i]->traverse_check(check_field); RC::SUCCESS != rc) {
           return rc;
         }
-        valid = true;  // ÆäËûÀàĞÍµÄ±í´ïÊ½ÏÈÔİÊ±ÈÏÎªÓĞĞ§
+        valid = true;  // å…¶ä»–ç±»å‹çš„è¡¨è¾¾å¼å…ˆæš‚æ—¶è®¤ä¸ºæœ‰æ•ˆ
       }
     }
     if (!valid) {

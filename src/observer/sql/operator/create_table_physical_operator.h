@@ -7,7 +7,7 @@ class Trx;
 class CreateTableStmt;
 
 /**
- * @brief ÎïÀíËã×Ó£¬½¨±í
+ * @brief ç‰©ç†ç®—å­ï¼Œå»ºè¡¨
  * @ingroup PhysicalOperator
  */
 class CreateTablePhysicalOperator : public PhysicalOperator

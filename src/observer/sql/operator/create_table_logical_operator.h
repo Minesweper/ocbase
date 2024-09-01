@@ -3,7 +3,7 @@
 class Db;
 
 /**
- * @brief CreateTableÂß¼­Ëã×Ó
+ * @brief CreateTableé€»è¾‘ç®—å­
  * @ingroup LogicalOperator
  */
 class CreateTableLogicalOperator : public LogicalOperator

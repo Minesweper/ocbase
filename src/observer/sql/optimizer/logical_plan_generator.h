@@ -136,7 +136,7 @@ private:
       return RC::SUCCESS;
     };
 
-    std::unique_ptr<LogicalOperator> outside_prev_oper(nullptr);  // µÑ¿¨¶û»ı
+    std::unique_ptr<LogicalOperator> outside_prev_oper(nullptr);  // ç¬›å¡å°”ç§¯
     for (auto &jt : tables) {
       std::unique_ptr<LogicalOperator> prev_oper(nullptr);  // INNER JOIN
       auto                       &join_tables = jt.join_tables();
@@ -177,16 +177,16 @@ private:
       }
     }
     if (select_stmt->groupby_stmt()) {
-      // Îª groupby_oper ¼ÓÒ»¸ösort ×ÓËã×Ó
-      // 1.ÏÈ¹¹Ôì orderby_unit
+      // ä¸º groupby_oper åŠ ä¸€ä¸ªsort å­ç®—å­
+      // 1.å…ˆæ„é€  orderby_unit
       auto                                &group_fields = select_stmt->groupby_stmt()->get_groupby_fields();
       std::vector<std::unique_ptr<OrderByUnit>> order_units;
       for (auto &expr : group_fields) {
         order_units.emplace_back(
-            std::make_unique<OrderByUnit>(expr->deep_copy().release(), true));  // ÕâÀïÖ¸ÕëĞèÒªÉî¿½±´Ò»·İ¸ø order by
+            std::make_unique<OrderByUnit>(expr->deep_copy().release(), true));  // è¿™é‡ŒæŒ‡é’ˆéœ€è¦æ·±æ‹·è´ä¸€ä»½ç»™ order by
       }
 
-      //  2 .ĞèÒª½« groupy_oper ÖĞµÄ field_expr ,ºÍ groupby  ºóµÄexpr  ¸´ÖÆÒ»·İ´«µİ¸ø orderby Ëã×Ó
+      //  2 .éœ€è¦å°† groupy_oper ä¸­çš„ field_expr ,å’Œ groupby  åçš„expr  å¤åˆ¶ä¸€ä»½ä¼ é€’ç»™ orderby ç®—å­
       std::vector<std::unique_ptr<Expression>> field_exprs;
       auto                                    &field = select_stmt->groupby_stmt()->get_field_exprs();
       for (auto &expr : field) {
@@ -280,7 +280,7 @@ private:
       return {};
     }
     std::vector<std::unique_ptr<Expression>> cmp_exprs;
-    // ¸ø×Ó²éÑ¯Éú³É logical oper
+    // ç»™å­æŸ¥è¯¢ç”Ÿæˆ logical oper
     auto process_sub_query = [](Expression *expr) {
       if (expr->type() == ExprType::SUBQUERY) {
         SubQueryExpr *sub_query_expr = static_cast<SubQueryExpr *>(expr);

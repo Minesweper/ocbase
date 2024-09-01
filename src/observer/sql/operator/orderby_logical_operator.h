@@ -8,7 +8,7 @@
 #include "storage/field/field.h"
 #include "sql/stmt/orderby_stmt.h"
 /**
- * @brief Âß¼­Ëã×Ó
+ * @brief é€»è¾‘ç®—å­
  * @ingroup LogicalOperator
  */
 class OrderByLogicalOperator : public LogicalOperator
@@ -25,7 +25,7 @@ public:
   std::vector<std::unique_ptr<Expression>>  &exprs() { return exprs_; }
 
 private:
-  std::vector<std::unique_ptr<OrderByUnit>> orderby_units_;  // ÅÅĞòÁĞ
+  std::vector<std::unique_ptr<OrderByUnit>> orderby_units_;  // æ’åºåˆ—
 
   std::vector<std::unique_ptr<Expression>> exprs_;
 };

@@ -69,7 +69,7 @@ RC SelectStmt::process_from_clause(Db *db, std::vector<Table *> &tables,
     std::unordered_map<std::string, std::string> &table_alias_map, std::unordered_map<std::string, Table *> &table_map,
     std::vector<InnerJoinSqlNode> &from_relations, std::vector<JoinTables> &join_tables)
 {
-  std::unordered_set<std::string> table_alias_set;  // ¼ì²â±ğÃûÊÇ·ñÓĞÖØ¸´
+  std::unordered_set<std::string> table_alias_set;  // æ£€æµ‹åˆ«åæ˜¯å¦æœ‰é‡å¤
 
   // collect tables info in `from` statement
   auto check_and_collect_tables = [&](const std::pair<std::string, std::string> &table_name_pair) {
@@ -89,8 +89,8 @@ RC SelectStmt::process_from_clause(Db *db, std::vector<Table *> &tables,
     tables.push_back(table);
     table_map.insert(std::pair<std::string, Table *>(src_name, table));
     if (!alias.empty()) {
-      // ĞèÒª¿¼ÂÇ±ğÃûÖØ¸´µÄÎÊÌâ
-      // NOTE: ÕâÀï²»ÄÜÓÃ table_map ÒòÎªÆäÖĞÓĞ parent table
+      // éœ€è¦è€ƒè™‘åˆ«åé‡å¤çš„é—®é¢˜
+      // NOTE: è¿™é‡Œä¸èƒ½ç”¨ table_map å› ä¸ºå…¶ä¸­æœ‰ parent table
       if (table_alias_set.count(alias) != 0) {
         return RC::INVALID_ARGUMENT;
       }
@@ -113,7 +113,7 @@ RC SelectStmt::process_from_clause(Db *db, std::vector<Table *> &tables,
         // create filterstmt
         FilterStmt *filter_stmt = nullptr;
         if (condition != nullptr) {
-          // TODO ÕâÀïÖØĞÂ¿¼ÂÇÏÂ¸¸×Ó²éÑ¯
+          // TODO è¿™é‡Œé‡æ–°è€ƒè™‘ä¸‹çˆ¶å­æŸ¥è¯¢
           // TODO select * from t1 where c1 in (select * from t2 inner join t3 on t1.c1 > 0 inner join t1) ?
           if (rc = FilterStmt::create(db, table_map[relation.first], &table_map, condition, filter_stmt);
               rc != RC::SUCCESS) {
@@ -131,7 +131,7 @@ RC SelectStmt::process_from_clause(Db *db, std::vector<Table *> &tables,
   for (size_t i = 0; i < from_relations.size(); ++i) {
     // t1 inner join t2 on xxx inner join t3 on xxx
     InnerJoinSqlNode &relations = from_relations[i];  // why not const : will clear its conditions
-    // local_table_map = parent_table_map; // from clause ÖĞµÄ expr ¿ÉÒÔÊ¹ÓÃ¸¸²éÑ¯µÄ±íÖĞµÄ×Ö¶Î
+    // local_table_map = parent_table_map; // from clause ä¸­çš„ expr å¯ä»¥ä½¿ç”¨çˆ¶æŸ¥è¯¢çš„è¡¨ä¸­çš„å­—æ®µ
 
     // construct JoinTables
     JoinTables jt;
@@ -151,7 +151,7 @@ RC SelectStmt::process_from_clause(Db *db, std::vector<Table *> &tables,
         return rc;
       }
     }
-    conditions.clear();  // ÆäËùÓĞÈ¨ÒÑ¾­¶¼½»¸øÁË FilterStmt
+    conditions.clear();  // å…¶æ‰€æœ‰æƒå·²ç»éƒ½äº¤ç»™äº† FilterStmt
 
     // push jt to join_tables
     join_tables.emplace_back(std::move(jt));
@@ -159,9 +159,9 @@ RC SelectStmt::process_from_clause(Db *db, std::vector<Table *> &tables,
   return RC::SUCCESS;
 }
 
-// parent_table_map ÊÇ¸¸²éÑ¯ÖĞµÄ table_map£¬ÕâÀïÖ»ĞèÒª¸¸²éÑ¯µÄ table map ¼´¿É
-// tables table_alias_map local_table_map ¶¼²»ĞèÒª
-// Ç¶Ì××Ó²éÑ¯ µÄÇé¿öÏÂÔÚ parent table map ÖĞÀÛ»ı ÕâÀï²»°ÑËüÎ¬»¤³É vector
+// parent_table_map æ˜¯çˆ¶æŸ¥è¯¢ä¸­çš„ table_mapï¼Œè¿™é‡Œåªéœ€è¦çˆ¶æŸ¥è¯¢çš„ table map å³å¯
+// tables table_alias_map local_table_map éƒ½ä¸éœ€è¦
+// åµŒå¥—å­æŸ¥è¯¢ çš„æƒ…å†µä¸‹åœ¨ parent table map ä¸­ç´¯ç§¯ è¿™é‡Œä¸æŠŠå®ƒç»´æŠ¤æˆ vector
 RC SelectStmt::create(
     Db *db, SelectSqlNode &select_sql, Stmt *&stmt, const std::unordered_map<std::string, Table *> &parent_table_map)
 {
@@ -170,9 +170,9 @@ RC SelectStmt::create(
     return RC::INVALID_ARGUMENT;
   }
 
-  std::vector<Table *>                         tables;           // ÊÕ¼¯ËùÓĞ table Ö÷ÒªÓÃÓÚ½âÎö select *
+  std::vector<Table *>                         tables;           // æ”¶é›†æ‰€æœ‰ table ä¸»è¦ç”¨äºè§£æ select *
   std::unordered_map<std::string, std::string> table_alias_map;  // <table src name, table alias name>
-  std::unordered_map<std::string, Table *> table_map = parent_table_map;  // ÊÕ¼¯ËùÓĞ table °üÀ¨ËùÓĞ×æÏÈ²éÑ¯µÄ table
+  std::unordered_map<std::string, Table *> table_map = parent_table_map;  // æ”¶é›†æ‰€æœ‰ table åŒ…æ‹¬æ‰€æœ‰ç¥–å…ˆæŸ¥è¯¢çš„ table
   std::vector<JoinTables> join_tables;
   RC rc = process_from_clause(db, tables, table_alias_map, table_map, select_sql.relations, join_tables);
   if (OB_FAIL(rc)) {
@@ -188,8 +188,8 @@ RC SelectStmt::create(
     default_table = tables[0];
   }
 
-  // ¼ì²éËùÓĞµÄ FieldExpr ºÍ SysFuncExpr ÊÇ·ñºÏ·¨ ²¢ÇÒÅĞ¶ÏÒ»ÏÂÊÇ·ñÓĞ AggrFuncExpr
-  // projects ÖĞ²»»á³öÏÖ subquery
+  // æ£€æŸ¥æ‰€æœ‰çš„ FieldExpr å’Œ SysFuncExpr æ˜¯å¦åˆæ³• å¹¶ä¸”åˆ¤æ–­ä¸€ä¸‹æ˜¯å¦æœ‰ AggrFuncExpr
+  // projects ä¸­ä¸ä¼šå‡ºç° subquery
   bool has_aggr_func_expr = false;
   auto check_project_expr = [&table_map, &tables, &default_table, &table_alias_map, &has_aggr_func_expr](
                                 Expression *expr) {
@@ -212,7 +212,7 @@ RC SelectStmt::create(
 
   for (size_t i = 0; i < select_sql.expressions.size(); ++i) {
     Expression *expr = select_sql.expressions[i];
-    // µ¥¶À´¦Àí select ºó¸ú * µÄÇé¿ö select *; select *.*; select t1.*
+    // å•ç‹¬å¤„ç† select åè·Ÿ * çš„æƒ…å†µ select *; select *.*; select t1.*
     if (expr->type() == ExprType::FIELD) {
       FieldExpr  *field_expr = static_cast<FieldExpr *>(expr);
       const char *table_name = field_expr->get_table_name().c_str();
@@ -257,7 +257,7 @@ RC SelectStmt::create(
       projects.emplace_back(expr);
     }
   }
-  select_sql.expressions.clear();  // ¹ÜÀíÈ¨ÒÑ¾­ÒÆ½»µ½ projects ÖĞ ºóĞø»á½»¸ø select stmt
+  select_sql.expressions.clear();  // ç®¡ç†æƒå·²ç»ç§»äº¤åˆ° projects ä¸­ åç»­ä¼šäº¤ç»™ select stmt
 
   LOG_INFO("got %d tables in from clause and %d exprs in query clause", tables.size(), projects.size());
 
@@ -272,27 +272,27 @@ RC SelectStmt::create(
 
   GroupByStmt *groupby_stmt       = nullptr;  // TODO release memory when failed
   FilterStmt  *having_filter_stmt = nullptr;  // TODO release memory when failed
-  // ÓĞ¾Û¼¯º¯Êı±í´ïÊ½ »òÕßÓĞ group by clause ¾ÍÒªÌí¼Ó group by stmt
+  // æœ‰èšé›†å‡½æ•°è¡¨è¾¾å¼ æˆ–è€…æœ‰ group by clause å°±è¦æ·»åŠ  group by stmt
   if (has_aggr_func_expr || select_sql.group_by.size() > 0) {
-    // 1. ÌáÈ¡ AggrFuncExpr ÒÔ¼°²»ÔÚ AggrFuncExpr ÖĞµÄ FieldExpr
+    // 1. æå– AggrFuncExpr ä»¥åŠä¸åœ¨ AggrFuncExpr ä¸­çš„ FieldExpr
     std::vector<std::unique_ptr<AggrFuncExpr>> aggr_exprs;
-    // select ×Ó¾äÖĞ³öÏÖµÄËùÓĞ fieldexpr ¶¼ĞèÒª´«µİÊÕ¼¯ÆğÀ´,
-    std::vector<std::unique_ptr<FieldExpr>>  field_exprs;           // Õâ¸ö vector ĞèÒª´«µİ¸ø order by Ëã×Ó
-    std::vector<std::unique_ptr<Expression>> field_exprs_not_aggr;  // select ºóµÄËùÓĞ·Ç aggrexpr µÄ
-                                                                    // field_expr,ÓÃÀ´ÅĞ¶ÏÓï¾äÊÇ·ñºÏ·¨
-    // ÓÃÓÚ´Ó project exprs ÖĞÌáÈ¡ËùÓĞ aggr func exprs. e.g. min(c1 + 1) + 1
+    // select å­å¥ä¸­å‡ºç°çš„æ‰€æœ‰ fieldexpr éƒ½éœ€è¦ä¼ é€’æ”¶é›†èµ·æ¥,
+    std::vector<std::unique_ptr<FieldExpr>>  field_exprs;           // è¿™ä¸ª vector éœ€è¦ä¼ é€’ç»™ order by ç®—å­
+    std::vector<std::unique_ptr<Expression>> field_exprs_not_aggr;  // select åçš„æ‰€æœ‰é aggrexpr çš„
+                                                                    // field_expr,ç”¨æ¥åˆ¤æ–­è¯­å¥æ˜¯å¦åˆæ³•
+    // ç”¨äºä» project exprs ä¸­æå–æ‰€æœ‰ aggr func exprs. e.g. min(c1 + 1) + 1
     auto collect_aggr_exprs = [&aggr_exprs](Expression *expr) {
       if (expr->type() == ExprType::AGGRFUNCTION) {
         aggr_exprs.emplace_back(static_cast<AggrFuncExpr *>(static_cast<AggrFuncExpr *>(expr)->deep_copy().release()));
       }
     };
-    // ÓÃÓÚ´Ó project exprs ÖĞÌáÈ¡ËùÓĞfield expr,
+    // ç”¨äºä» project exprs ä¸­æå–æ‰€æœ‰field expr,
     auto collect_field_exprs = [&field_exprs](Expression *expr) {
       if (expr->type() == ExprType::FIELD) {
         field_exprs.emplace_back(static_cast<FieldExpr *>(static_cast<FieldExpr *>(expr)->deep_copy().release()));
       }
     };
-    // ÓÃÓÚ´Ó project exprs ÖĞÌáÈ¡ËùÓĞ²»ÔÚ aggr func expr ÖĞµÄ field expr
+    // ç”¨äºä» project exprs ä¸­æå–æ‰€æœ‰ä¸åœ¨ aggr func expr ä¸­çš„ field expr
     auto collect_exprs_not_aggexpr = [&field_exprs_not_aggr](Expression *expr) {
       if (expr->type() == ExprType::FIELD) {
         field_exprs_not_aggr.emplace_back(
@@ -301,16 +301,16 @@ RC SelectStmt::create(
     };
     // do extract
     for (auto &project : projects) {
-      project->traverse(collect_aggr_exprs);   // ÌáÈ¡ËùÓĞ aggexpr
-      project->traverse(collect_field_exprs);  // ÌáÈ¡ select clause ÖĞµÄËùÓĞ field_expr,´«µİ¸øgroupby stmt
+      project->traverse(collect_aggr_exprs);   // æå–æ‰€æœ‰ aggexpr
+      project->traverse(collect_field_exprs);  // æå– select clause ä¸­çš„æ‰€æœ‰ field_expr,ä¼ é€’ç»™groupby stmt
       // project->traverse(collect_field_exprs, [](const Expression* expr) { return expr->type() !=
       // ExprType::AGGRFUNCTION; });
 
-      // ÌáÈ¡ËùÓĞ²»ÔÚ aggexpr ÖĞµÄ field_expr£¬ÓÃÓÚÓïÒå¼ì²é
+      // æå–æ‰€æœ‰ä¸åœ¨ aggexpr ä¸­çš„ field_exprï¼Œç”¨äºè¯­ä¹‰æ£€æŸ¥
       project->traverse(
           collect_exprs_not_aggexpr, [](const Expression *expr) { return expr->type() != ExprType::AGGRFUNCTION; });
     }
-    // Õë¶Ô having ºóµÄ±í´ïÊ½£¬ĞèÒª×öºÍÉÏÃæÏàÍ¬µÄÈı¸öÌáÈ¡¹ı³Ì
+    // é’ˆå¯¹ having åçš„è¡¨è¾¾å¼ï¼Œéœ€è¦åšå’Œä¸Šé¢ç›¸åŒçš„ä¸‰ä¸ªæå–è¿‡ç¨‹
     //  select id, max(score) from t_group_by group by id having count(*)>5;
     if (select_sql.having_conditions != nullptr) {
       rc = FilterStmt::create(db, default_table, &table_map, select_sql.having_conditions, having_filter_stmt);
@@ -318,28 +318,28 @@ RC SelectStmt::create(
         LOG_WARN("cannot construct filter stmt");
         return rc;
       }
-      // a. create filter stmt ÖĞ £¬having ×Ó¾äÖĞµÄÒÑ¾­ÄÚÈİ½øĞĞ check_filed ÁË,²¢ÇÒ Èç¹ûÊÇ agg_expr£¬¾ÍÏÈÈ¡³öÀ´
+      // a. create filter stmt ä¸­ ï¼Œhaving å­å¥ä¸­çš„å·²ç»å†…å®¹è¿›è¡Œ check_filed äº†,å¹¶ä¸” å¦‚æœæ˜¯ agg_exprï¼Œå°±å…ˆå–å‡ºæ¥
       auto &filter_expr = having_filter_stmt->condition();
-      filter_expr->traverse(collect_aggr_exprs);   // ÌáÈ¡ËùÓĞ aggexpr
-      filter_expr->traverse(collect_field_exprs);  // ÌáÈ¡ select clause ÖĞµÄËùÓĞ field_expr,´«µİ¸øgroupby stmt
+      filter_expr->traverse(collect_aggr_exprs);   // æå–æ‰€æœ‰ aggexpr
+      filter_expr->traverse(collect_field_exprs);  // æå– select clause ä¸­çš„æ‰€æœ‰ field_expr,ä¼ é€’ç»™groupby stmt
       // project->traverse(collect_field_exprs, [](const Expression* expr) { return expr->type() !=
-      // ExprType::AGGRFUNCTION; }); ÌáÈ¡ËùÓĞ²»ÔÚ aggexpr ÖĞµÄ field_expr£¬ÓÃÓÚÓïÒå¼ì²é
+      // ExprType::AGGRFUNCTION; }); æå–æ‰€æœ‰ä¸åœ¨ aggexpr ä¸­çš„ field_exprï¼Œç”¨äºè¯­ä¹‰æ£€æŸ¥
       filter_expr->traverse(
           collect_exprs_not_aggexpr, [](const Expression *expr) { return expr->type() != ExprType::AGGRFUNCTION; });
       select_sql.having_conditions = nullptr;
     }
 
-    // 2. ÓïÒå¼ì²é check:
-    // - ¾Û¼¯º¯Êı²ÎÊı¸öÊı¡¢²ÎÊıÎª * µÄ¼ì²éÊÇÔÚ syntax parser Íê³É
-    // - ¾Û¼¯º¯ÊıÖĞµÄ×Ö¶Î OK select clause ¼ì²é¹ıÁË
+    // 2. è¯­ä¹‰æ£€æŸ¥ check:
+    // - èšé›†å‡½æ•°å‚æ•°ä¸ªæ•°ã€å‚æ•°ä¸º * çš„æ£€æŸ¥æ˜¯åœ¨ syntax parser å®Œæˆ
+    // - èšé›†å‡½æ•°ä¸­çš„å­—æ®µ OK select clause æ£€æŸ¥è¿‡äº†
 
-    // - Ã»ÓĞ group by clause Ê±£¬²»Ó¦¸ÃÓĞ·Ç¾Û¼¯º¯ÊıÖĞµÄ×Ö¶Î
+    // - æ²¡æœ‰ group by clause æ—¶ï¼Œä¸åº”è¯¥æœ‰éèšé›†å‡½æ•°ä¸­çš„å­—æ®µ
     if (!field_exprs_not_aggr.empty() && select_sql.group_by.size() == 0) {
       LOG_WARN("No Group By. But Has Fields Not In Aggr Func");
       return RC::INVALID_ARGUMENT;
     }
 
-    // - ÓĞ group by£¬ÒªÅĞ¶Ï select clause ºÍ having clause ÖĞµÄ expr (³ı agg_expr) ÔÚÒ»¸ö group ÖĞÖ»ÄÜÓĞÒ»¸öÖµ
+    // - æœ‰ group byï¼Œè¦åˆ¤æ–­ select clause å’Œ having clause ä¸­çš„ expr (é™¤ agg_expr) åœ¨ä¸€ä¸ª group ä¸­åªèƒ½æœ‰ä¸€ä¸ªå€¼
     // e.g. select min(c1), c2+c3*c4 from t1 group by c2+c3, c4; YES
     //      select min(c1), c2, c3+c4 from t1 group by c2+c3;    NO
     if (select_sql.group_by.size() > 0) {
@@ -352,17 +352,17 @@ RC SelectStmt::create(
         }
       }
 
-      // ÏÈÌáÈ¡ select ºóµÄ·Ç aggexpr £¬È»ºóÅĞ¶ÏÆäÊÇ·ñÊÇ groupby ÖĞ
+      // å…ˆæå– select åçš„é aggexpr ï¼Œç„¶ååˆ¤æ–­å…¶æ˜¯å¦æ˜¯ groupby ä¸­
       std::vector<Expression *> &groupby_exprs               = select_sql.group_by;
       auto                       check_expr_in_groupby_exprs = [&groupby_exprs](std::unique_ptr<Expression> &expr) {
         for (auto tmp : groupby_exprs) {
-          if (expr->name() == tmp->name())  // Í¨¹ı±í´ïÊ½µÄÃû³Æ½øĞĞÅĞ¶Ï
+          if (expr->name() == tmp->name())  // é€šè¿‡è¡¨è¾¾å¼çš„åç§°è¿›è¡Œåˆ¤æ–­
             return true;
         }
         return false;
       };
 
-      // TODO Ã»ÓĞ¼ì²é having ºÍ order by ×Ó¾äÖĞµÄ±í´ïÊ½
+      // TODO æ²¡æœ‰æ£€æŸ¥ having å’Œ order by å­å¥ä¸­çš„è¡¨è¾¾å¼
       for (auto &project : projects) {
         if (project->type() != ExprType::AGGRFUNCTION) {
           if (!check_expr_in_groupby_exprs(project)) {
@@ -386,26 +386,26 @@ RC SelectStmt::create(
       return rc;
     }
     select_sql.group_by.clear();
-    // 4. ÔÚÎïÀí¼Æ»®Éú³É½×¶ÎÏò groupby_operator ÏÂ¹ÒÒ»¸ö orderby_operator
+    // 4. åœ¨ç‰©ç†è®¡åˆ’ç”Ÿæˆé˜¶æ®µå‘ groupby_operator ä¸‹æŒ‚ä¸€ä¸ª orderby_operator
   }
 
   OrderByStmt *orderby_stmt = nullptr;  // TODO release memory when failed
   // create orderby stmt
-  // ÒòÎªÎÒÃÇ order by µÄÊµÏÖÒª¿½±´ËùÓĞĞèÒªµÄÊı¾İ ËùÒÔ»¹ÊÇÒªÌáÈ¡ TODO ÕâÀï¿ÉÄÜ»áÖØ¸´ µ«ÊÇÏÈ²»¿¼ÂÇ
-  // - ÏÈÌáÈ¡ select clause ºóµÄ field_expr(·Çagg_exprÖĞµÄ)£¬ºÍ agg_expr£¬ÕâÀïÌáÈ¡Ê±ÒÑ¾­²»ĞèÒªÔÙ½øĞĞ check ÁË£¬ÒòÎªÔÚ
+  // å› ä¸ºæˆ‘ä»¬ order by çš„å®ç°è¦æ‹·è´æ‰€æœ‰éœ€è¦çš„æ•°æ® æ‰€ä»¥è¿˜æ˜¯è¦æå– TODO è¿™é‡Œå¯èƒ½ä¼šé‡å¤ ä½†æ˜¯å…ˆä¸è€ƒè™‘
+  // - å…ˆæå– select clause åçš„ field_expr(éagg_exprä¸­çš„)ï¼Œå’Œ agg_exprï¼Œè¿™é‡Œæå–æ—¶å·²ç»ä¸éœ€è¦å†è¿›è¡Œ check äº†ï¼Œå› ä¸ºåœ¨
   // select clause
-  // - order by ºóµÄ expr ½øĞĞ check field
+  // - order by åçš„ expr è¿›è¡Œ check field
   if (select_sql.order_by.size() > 0) {
-    // ÌáÈ¡ AggrFuncExpr ÒÔ¼°²»ÔÚ AggrFuncExpr ÖĞµÄ FieldExpr
+    // æå– AggrFuncExpr ä»¥åŠä¸åœ¨ AggrFuncExpr ä¸­çš„ FieldExpr
     std::vector<std::unique_ptr<Expression>> expr_for_orderby;
-    // ÓÃÓÚ´Ó project exprs ÖĞÌáÈ¡ËùÓĞ aggr func exprs. e.g. min(c1 + 1) + 1
+    // ç”¨äºä» project exprs ä¸­æå–æ‰€æœ‰ aggr func exprs. e.g. min(c1 + 1) + 1
     auto collect_aggr_exprs = [&expr_for_orderby](Expression *expr) {
       if (expr->type() == ExprType::AGGRFUNCTION) {
         expr_for_orderby.emplace_back(
             static_cast<AggrFuncExpr *>(static_cast<AggrFuncExpr *>(expr)->deep_copy().release()));
       }
     };
-    // ÓÃÓÚ´Ó project exprs ÖĞÌáÈ¡ËùÓĞ²»ÔÚ aggr func expr ÖĞµÄ field expr
+    // ç”¨äºä» project exprs ä¸­æå–æ‰€æœ‰ä¸åœ¨ aggr func expr ä¸­çš„ field expr
     auto collect_field_exprs = [&expr_for_orderby](Expression *expr) {
       if (expr->type() == ExprType::FIELD) {
         expr_for_orderby.emplace_back(static_cast<FieldExpr *>(static_cast<FieldExpr *>(expr)->deep_copy().release()));
@@ -417,7 +417,7 @@ RC SelectStmt::create(
       project->traverse(
           collect_field_exprs, [](const Expression *expr) { return expr->type() != ExprType::AGGRFUNCTION; });
     }
-    // TODO ¼ì²éÓ¦¸Ã·Åµ½ create ÀïÃæÈ¥¼ì²é
+    // TODO æ£€æŸ¥åº”è¯¥æ”¾åˆ° create é‡Œé¢å»æ£€æŸ¥
     // do check field
     for (size_t i = 0; i < select_sql.order_by.size(); i++) {
       Expression *expr = select_sql.order_by[i].expr;
@@ -435,7 +435,7 @@ RC SelectStmt::create(
   }
 
   // everything alright
-  // NOTE: ´ËÊ± select_sql Ô­ÓĞµÄ²¿·ÖĞÅÏ¢ÒÑ±»ÒÆ³ı ºóĞø²»µÃÊ¹ÓÃ
+  // NOTE: æ­¤æ—¶ select_sql åŸæœ‰çš„éƒ¨åˆ†ä¿¡æ¯å·²è¢«ç§»é™¤ åç»­ä¸å¾—ä½¿ç”¨
   SelectStmt *select_stmt = new SelectStmt();
   select_stmt->join_tables_.swap(join_tables);
   select_stmt->projects_.swap(projects);

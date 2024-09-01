@@ -32,7 +32,7 @@ RC UpdatePhysicalOperator::open(Trx *trx)
 
 RC UpdatePhysicalOperator::find_target_columns()
 {
-  // Èç¹û×Ö¶Î¼ì²éÊ§°Ü ²¢²»Í£Ö¹Ö´ĞĞ Ö»ÊÇ´ò¸ö±êÖ¾ ÒòÎªÈç¹û¸üĞÂ 0 ĞĞ±ØÈ»·µ»Ø³É¹¦
+  // å¦‚æœå­—æ®µæ£€æŸ¥å¤±è´¥ å¹¶ä¸åœæ­¢æ‰§è¡Œ åªæ˜¯æ‰“ä¸ªæ ‡å¿— å› ä¸ºå¦‚æœæ›´æ–° 0 è¡Œå¿…ç„¶è¿”å›æˆåŠŸ
   RC         rc             = RC::SUCCESS;
   const int  sys_field_num  = table_->table_meta().sys_field_num();
   const int  user_field_num = table_->table_meta().field_num() - sys_field_num;
@@ -41,7 +41,7 @@ RC UpdatePhysicalOperator::find_target_columns()
   for (size_t c_idx = 0; c_idx < fields_.size(); c_idx++) {
     std::string &attr_name = fields_[c_idx];
 
-    // ÏÈÕÒµ½Òª¸üĞÂµÄÁĞ£¬»ñÈ¡¸ÃÁĞµÄ id¡¢FieldMeta(offset¡¢length¡¢type)
+    // å…ˆæ‰¾åˆ°è¦æ›´æ–°çš„åˆ—ï¼Œè·å–è¯¥åˆ—çš„ idã€FieldMeta(offsetã€lengthã€type)
     for (int i = 0; i < user_field_num; ++i) {
       const FieldMeta *field_meta = table_->table_meta().field(i + sys_field_num);
       const char      *field_name = field_meta->name();
@@ -53,18 +53,18 @@ RC UpdatePhysicalOperator::find_target_columns()
       Value raw_value;
       if (expr->type() == ExprType::SUBQUERY) {
         SubQueryExpr *subquery_expr = static_cast<SubQueryExpr *>(expr.get());
-        if (rc = subquery_expr->open(nullptr); RC::SUCCESS != rc) {  // ÔİÊ±ÏÈ nullptr
+        if (rc = subquery_expr->open(nullptr); RC::SUCCESS != rc) {  // æš‚æ—¶å…ˆ nullptr
           return rc;
         }
         rc = subquery_expr->get_value(tp, raw_value);
         if (RC::RECORD_EOF == rc) {
-          // ×Ó²éÑ¯Îª¿Õ¼¯Ê±ÉèÖÃ null
+          // å­æŸ¥è¯¢ä¸ºç©ºé›†æ—¶è®¾ç½® null
           raw_value.set_null();
           rc = RC::SUCCESS;
         } else if (RC::SUCCESS != rc) {
           return rc;
         } else if (subquery_expr->has_more_row(tp)) {
-          // ×Ó²éÑ¯Îª¶àĞĞ ´ò¸ö±êÖ¾ Ö±½ÓÌø¹ıºóĞø¼ì²é
+          // å­æŸ¥è¯¢ä¸ºå¤šè¡Œ æ‰“ä¸ªæ ‡å¿— ç›´æ¥è·³è¿‡åç»­æ£€æŸ¥
           invalid_ = true;
           break;
         }
@@ -74,8 +74,8 @@ RC UpdatePhysicalOperator::find_target_columns()
           return rc;
         }
       }
-      // ÄÃµ½ Raw Value
-      // ÅĞ¶Ï ÀàĞÍÊÇ·ñ·ûºÏÒªÇó
+      // æ‹¿åˆ° Raw Value
+      // åˆ¤æ–­ ç±»å‹æ˜¯å¦ç¬¦åˆè¦æ±‚
       if (raw_value.is_null() && field_meta->nullable()) {
         // ok
       } else if (raw_value.attr_type() != field_meta->type()) {
@@ -109,7 +109,7 @@ RC UpdatePhysicalOperator::next()
 
   PhysicalOperator *child = children_[0].get();
   while (RC::SUCCESS == (rc = child->next())) {
-    if (invalid_) {  // ×Ó²éÑ¯½á¹ûÎª¶àĞĞ
+    if (invalid_) {  // å­æŸ¥è¯¢ç»“æœä¸ºå¤šè¡Œ
       return RC::INVALID_ARGUMENT;
     }
 
@@ -119,12 +119,12 @@ RC UpdatePhysicalOperator::next()
       return rc;
     }
 
-    // ÕâÀïµÄrecord.dataÖ±½ÓÖ¸Ïòframe
+    // è¿™é‡Œçš„record.dataç›´æ¥æŒ‡å‘frame
     RowTuple *row_tuple = static_cast<RowTuple *>(tuple);
     Record   &record    = row_tuple->record();
     Record    new_record;
 
-    // Èç¹û¸üĞÂÇ°ºórecord²»±ä£¬ÔòÌø¹ıÕâÒ»ĞĞ
+    // å¦‚æœæ›´æ–°å‰årecordä¸å˜ï¼Œåˆ™è·³è¿‡è¿™ä¸€è¡Œ
     RC rc2 = RC::SUCCESS;
     if (RC::SUCCESS != (rc2 = construct_new_record(record, new_record))) {
       if (RC::RECORD_DUPLICATE_KEY == rc2) {
@@ -134,13 +134,13 @@ RC UpdatePhysicalOperator::next()
       }
     }
 
-    // ½Ó¿ÚÄÚ²¿Ö»±£Ö¤µ±Ç°record¸üĞÂµÄÔ­×ÓĞÔ
-    rc = table_->update_record(record, new_record);  // ÕâÀïÔİÊ±Ã»¹ÜÊÂÎñ£¬Ö®ºóĞèÒªĞŞ¸Ä
+    // æ¥å£å†…éƒ¨åªä¿è¯å½“å‰recordæ›´æ–°çš„åŸå­æ€§
+    rc = table_->update_record(record, new_record);  // è¿™é‡Œæš‚æ—¶æ²¡ç®¡äº‹åŠ¡ï¼Œä¹‹åéœ€è¦ä¿®æ”¹
     if (rc != RC::SUCCESS) {
-      // ¸üĞÂÊ§°Ü£¬ĞèÒª»Ø¹öÖ®Ç°³É¹¦µÄrecord
+      // æ›´æ–°å¤±è´¥ï¼Œéœ€è¦å›æ»šä¹‹å‰æˆåŠŸçš„record
       LOG_WARN("failed to update record: %s", strrc(rc));
 
-      // old_recordsÖĞ×îºóÒ»Ìõ¼ÇÂ¼ÊÇ¸Õ²Å¸üĞÂÊ§°ÜµÄ£¬²»ĞèÒª»Ø¹ö
+      // old_recordsä¸­æœ€åä¸€æ¡è®°å½•æ˜¯åˆšæ‰æ›´æ–°å¤±è´¥çš„ï¼Œä¸éœ€è¦å›æ»š
       old_rids_.pop_back();
       old_values_.pop_back();
       new_record.set_data(nullptr);
@@ -179,20 +179,20 @@ RC UpdatePhysicalOperator::construct_new_record(Record &old_record, Record &new_
     Value     *value      = &raw_values_[c_idx];
     FieldMeta &field_meta = fields_meta_[c_idx];
 
-    // ÅĞ¶Ï ĞÂÖµÓë¾ÉÖµÊÇ·ñÏàµÈ£¬»º´æ¾ÉÖµ£¬½«ĞÂÖµ¸´ÖÆµ½ĞÂµÄrecordÀï
+    // åˆ¤æ–­ æ–°å€¼ä¸æ—§å€¼æ˜¯å¦ç›¸ç­‰ï¼Œç¼“å­˜æ—§å€¼ï¼Œå°†æ–°å€¼å¤åˆ¶åˆ°æ–°çš„recordé‡Œ
     const FieldMeta *null_field = table_->table_meta().null_field();
     common::Bitmap   old_null_bitmap(old_record.data() + null_field->offset(), table_->table_meta().field_num());
     common::Bitmap   new_null_bitmap(tmp_record_data_ + null_field->offset(), table_->table_meta().field_num());
 
     if (value->is_null() && old_null_bitmap.get_bit(fields_id_[c_idx])) {
-      // ¶şÕß¶¼ÊÇNULL£¬±£´æ¾ÉÖµ¼´¿É
+      // äºŒè€…éƒ½æ˜¯NULLï¼Œä¿å­˜æ—§å€¼å³å¯
       old_value.emplace_back(NULLS, nullptr, 0);
     } else if (value->is_null()) {
-      // ĞÂÖµÊÇNULL£¬¾ÉÖµ²»ÊÇ
+      // æ–°å€¼æ˜¯NULLï¼Œæ—§å€¼ä¸æ˜¯
       new_null_bitmap.set_bit(fields_id_[c_idx]);
       old_value.emplace_back(field_meta.type(), old_record.data() + field_meta.offset(), field_meta.len());
     } else {
-      // ĞÂÖµ²»ÊÇNULL
+      // æ–°å€¼ä¸æ˜¯NULL
       new_null_bitmap.clear_bit(fields_id_[c_idx]);
 
       if (TEXTS == field_meta.type()) {
@@ -218,7 +218,7 @@ RC UpdatePhysicalOperator::construct_new_record(Record &old_record, Record &new_
       }
     }
   }
-  // ±È½ÏÕûĞĞÊı¾İ
+  // æ¯”è¾ƒæ•´è¡Œæ•°æ®
   if (0 == memcmp(old_record.data(), tmp_record_data_, table_->table_meta().record_size())) {
     LOG_WARN("update old value equals new value, skip this record");
     return RC::RECORD_DUPLICATE_KEY;
@@ -243,16 +243,16 @@ RC UpdatePhysicalOperator::construct_old_record(Record &updated_record, Record &
     Value     *value      = &old_value[val_idx++];
     FieldMeta &field_meta = fields_meta_[c_idx];
 
-    // ½«¾ÉÖµ¸´ÖÆµ½ old_record Àï
+    // å°†æ—§å€¼å¤åˆ¶åˆ° old_record é‡Œ
     const FieldMeta *null_field = table_->table_meta().null_field();
     common::Bitmap   old_null_bitmap(tmp_record_data_ + null_field->offset(), table_->table_meta().field_num());
     common::Bitmap updated_null_bitmap(updated_record.data() + null_field->offset(), table_->table_meta().field_num());
 
     if (value->is_null()) {
-      // ¾ÉÖµÊÇNULL
+      // æ—§å€¼æ˜¯NULL
       old_null_bitmap.set_bit(fields_id_[c_idx]);
     } else {
-      // ¾ÉÖµ²»ÊÇNULL
+      // æ—§å€¼ä¸æ˜¯NULL
       old_null_bitmap.clear_bit(fields_id_[c_idx]);
       if (TEXTS == field_meta.type()) {
         memcpy(tmp_record_data_ + field_meta.offset(), value->data(), sizeof(int64_t));

@@ -7,7 +7,7 @@
 #include "sql/expr/tuple.h"
 
 /**
- * @brief ÎïÀíËã×Ó
+ * @brief ç‰©ç†ç®—å­
  * @ingroup PhysicalOperator
  */
 class OrderByPhysicalOperator : public PhysicalOperator
@@ -28,10 +28,10 @@ public:
   Tuple *current_tuple() override;
 
 private:
-  std::vector<std::unique_ptr<OrderByUnit>> orderby_units_;  // ÅÅĞòÁĞ
+  std::vector<std::unique_ptr<OrderByUnit>> orderby_units_;  // æ’åºåˆ—
   std::vector<std::vector<Value>>           values_;
   SplicedTuple                              tuple_;
 
-  std::vector<int>           ordered_idx_;  // ´æ´¢´Ó values_ÖĞÈ¡ Êı¾İµÄË³Ğò
+  std::vector<int>           ordered_idx_;  // å­˜å‚¨ä» values_ä¸­å– æ•°æ®çš„é¡ºåº
   std::vector<int>::iterator it_;
 };

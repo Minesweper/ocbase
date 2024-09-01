@@ -269,7 +269,7 @@ int TableMeta::deserialize(std::istream &is)
 
   for (const FieldMeta &field_meta : fields_) {
     if (!field_meta.visible()) {
-      trx_fields_.push_back(field_meta); // 字段加上trx标识更好
+      trx_fields_.push_back(field_meta); // Õ¡ùµ«ÁÕèáõ©ètrxµáç×»åµø┤ÕÑ¢
     }
   }
 

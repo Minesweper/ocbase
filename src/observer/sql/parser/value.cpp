@@ -276,7 +276,7 @@ int Value::compare(const Value &other) const
 
 int Value::get_int() const
 {
-  // ASSERT(attr_type_ != DATES,"date can not get_int()"); date_format 需要调用 get_int()
+  // ASSERT(attr_type_ != DATES,"date can not get_int()"); date_format 鈹溍夆敎驴鈹溍嗏敩卢鈹佲敎脌鈹溍粹敎芒 get_int()
   switch (attr_type_) {
     case CHARS: {
       try {

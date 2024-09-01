@@ -17,7 +17,7 @@ RC OrderByStmt::create(Db *db, Table *default_table, std::unordered_map<std::str
 
   for (auto &node : orderby_sql_nodes) {
     tmp_units.emplace_back(
-        std::make_unique<OrderByUnit>(node.expr, node.is_asc));  // 这里 order by unit 中的指针是独享的
+        std::make_unique<OrderByUnit>(node.expr, node.is_asc));  // 杩欓噷 order by unit 涓殑鎸囬拡鏄嫭浜殑
   }
   // everything alright
   stmt = new OrderByStmt();
