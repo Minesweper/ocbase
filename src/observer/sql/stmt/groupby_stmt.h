@@ -37,7 +37,7 @@ public:
 
 private:
   std::vector<std::unique_ptr<Expression>>   groupby_fields_;  // group by clause
-  std::vector<std::unique_ptr<AggrFuncExpr>> agg_exprs_;       // 聚集函数表达式
-  std::vector<std::unique_ptr<FieldExpr>> field_exprs_;  // 非聚集函数中的字段表达式,需要传递给下层的 order by 算子
+  std::vector<std::unique_ptr<AggrFuncExpr>> agg_exprs_;       
+  std::vector<std::unique_ptr<FieldExpr>> field_exprs_;  
   
 };

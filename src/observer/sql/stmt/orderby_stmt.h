@@ -53,8 +53,7 @@ public:
       std::vector<std::unique_ptr<Expression>> &&exprs);
 
 private:
-  std::vector<std::unique_ptr<OrderByUnit>> orderby_units_;  // 排序列
+  std::vector<std::unique_ptr<OrderByUnit>> orderby_units_;  
 
-  /// 在 create order by stmt 之前提取 select clause 后的 field_expr (非a gg_expr 中的)和 agg_expr
   std::vector<std::unique_ptr<Expression>> exprs_;
 };

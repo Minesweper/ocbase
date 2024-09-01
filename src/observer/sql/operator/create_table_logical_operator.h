@@ -2,10 +2,7 @@
 
 class Db;
 
-/**
- * @brief CreateTable逻辑算子
- * @ingroup LogicalOperator
- */
+
 class CreateTableLogicalOperator : public LogicalOperator
 {
 public:

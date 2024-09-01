@@ -17,7 +17,6 @@ See the Mulan PSL v2 for more details. */
 #include "sql/operator/physical_operator.h"
 
 /**
- * @brief Explainþë®þÉåþ«ùÕ¡É
  * @ingroup PhysicalOperator
  */
 class ExplainPhysicalOperator : public PhysicalOperator

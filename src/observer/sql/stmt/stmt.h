@@ -6,16 +6,6 @@
 
 class Db;
 
-/**
- * @brief Statement SQL语句解析后通过Resolver转换成Stmt
- * @defgroup Statement
- * @file stmt.h
- */
-
-/**
- * @brief Statement的类型
- *
- */
 #define DEFINE_ENUM()            \
   DEFINE_ENUM_ITEM(CALC)         \
   DEFINE_ENUM_ITEM(SELECT)       \
@@ -65,8 +55,6 @@ bool stmt_type_ddl(StmtType type);
 /**
  * @brief Stmt for Statement
  * @ingroup Statement
- * @details SQL解析后的语句，再进一步解析成Stmt，使用内部的数据结构来表示。
- * 比如table_name，解析成具体的 Table对象，attr/field name解析成Field对象。
  */
 class Stmt
 {

@@ -136,7 +136,7 @@ private:
       return RC::SUCCESS;
     };
 
-    std::unique_ptr<LogicalOperator> outside_prev_oper(nullptr);  // 笛卡尔积
+    std::unique_ptr<LogicalOperator> outside_prev_oper(nullptr);  
     for (auto &jt : tables) {
       std::unique_ptr<LogicalOperator> prev_oper(nullptr);  // INNER JOIN
       auto                       &join_tables = jt.join_tables();
@@ -177,16 +177,16 @@ private:
       }
     }
     if (select_stmt->groupby_stmt()) {
-      // 为 groupby_oper 加一个sort 子算子
-      // 1.先构造 orderby_unit
+      
+
       auto                                &group_fields = select_stmt->groupby_stmt()->get_groupby_fields();
       std::vector<std::unique_ptr<OrderByUnit>> order_units;
       for (auto &expr : group_fields) {
         order_units.emplace_back(
-            std::make_unique<OrderByUnit>(expr->deep_copy().release(), true));  // 这里指针需要深拷贝一份给 order by
+            std::make_unique<OrderByUnit>(expr->deep_copy().release(), true)); 
       }
 
-      //  2 .需要将 groupy_oper 中的 field_expr ,和 groupby  后的expr  复制一份传递给 orderby 算子
+
       std::vector<std::unique_ptr<Expression>> field_exprs;
       auto                                    &field = select_stmt->groupby_stmt()->get_field_exprs();
       for (auto &expr : field) {
@@ -280,7 +280,7 @@ private:
       return {};
     }
     std::vector<std::unique_ptr<Expression>> cmp_exprs;
-    // 给子查询生成 logical oper
+ 
     auto process_sub_query = [](Expression *expr) {
       if (expr->type() == ExprType::SUBQUERY) {
         SubQueryExpr *sub_query_expr = static_cast<SubQueryExpr *>(expr);

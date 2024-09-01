@@ -10,10 +10,7 @@ class Db;
 class Table;
 class FieldMeta;
 
-/**
- * @brief Filter/谓词/过滤语句
- * @ingroup Statement
- */
+
 class FilterStmt
 {
 public:

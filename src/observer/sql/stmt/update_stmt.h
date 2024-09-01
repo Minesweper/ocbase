@@ -21,10 +21,7 @@ See the Mulan PSL v2 for more details. */
 
 class Table;
 
-/**
- * @brief 更新语句
- * @ingroup Statement
- */
+
 class UpdateStmt : public Stmt
 {
 public:
@@ -46,7 +43,7 @@ public:
 
 private:
   Table *table_        = nullptr;
-  std::vector<std::unique_ptr<Expression>> values_;  // 列的新值
-  std::vector<FieldMeta>                   fields_;  // 将被更新的列
+  std::vector<std::unique_ptr<Expression>> values_; 
+  std::vector<FieldMeta>                   fields_;  
   FilterStmt                              *filter_stmt_ = nullptr;
 };

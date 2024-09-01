@@ -17,10 +17,7 @@ See the Mulan PSL v2 for more details. */
 
 class Table;
 
-/**
- * @brief 表扫描物理算子(vectorized)
- * @ingroup PhysicalOperator
- */
+
 class TableScanVecPhysicalOperator : public PhysicalOperator
 {
 public:

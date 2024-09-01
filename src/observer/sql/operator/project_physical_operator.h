@@ -17,10 +17,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/operator/physical_operator.h"
 #include "sql/expr/expression_tuple.h"
 
-/**
- * @brief 选择/投影物理算子
- * @ingroup PhysicalOperator
- */
+
 class ProjectPhysicalOperator : public PhysicalOperator
 {
 public:

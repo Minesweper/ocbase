@@ -25,16 +25,7 @@ class Record;
 class TupleCellSpec;
 class Trx;
 
-/**
- * @brief 物理算子
- * @defgroup PhysicalOperator
- * @details 物理算子描述执行计划将如何执行，比如从表中怎么获取数据，如何做投影，怎么做连接等
- */
 
-/**
- * @brief 物理算子类型
- * @ingroup PhysicalOperator
- */
 enum class PhysicalOperatorType
 {
   TABLE_SCAN,
@@ -60,10 +51,7 @@ enum class PhysicalOperatorType
   EXPR_VEC,
 };
 
-/**
- * @brief 与LogicalOperator对应，物理算子描述执行计划将如何执行
- * @ingroup PhysicalOperator
- */
+
 class PhysicalOperator
 {
 public:
@@ -71,9 +59,7 @@ public:
 
   virtual ~PhysicalOperator() = default;
 
-  /**
-   * 这两个函数是为了打印时使用的，比如在explain中
-   */
+
   virtual std::string name() const;
   virtual std::string param() const;
 

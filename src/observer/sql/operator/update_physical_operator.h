@@ -9,10 +9,7 @@
 class Trx;
 class UpdateStmt;
 
-/**
- * @brief 物理算子，更新
- * @ingroup PhysicalOperator
- */
+
 class UpdatePhysicalOperator : public PhysicalOperator
 {
 public:
@@ -39,13 +36,13 @@ public:
   RC next() override;
   RC close() override;
 
-  // 查找待更新列的序号、偏移量、长度、类型
+
   RC find_target_columns();
 
-  // 构造新的 Record
+
   RC construct_new_record(Record &old_record, Record &new_record);
 
-  // 回滚时使用，从更新后 Record 构造出更新前的
+
   RC construct_old_record(Record &updated_record, Record &old_record);
 
   Tuple *current_tuple() override { return nullptr; }
@@ -59,9 +56,9 @@ private:
 
   std::vector<int>       fields_id_;
   std::vector<FieldMeta> fields_meta_;
-  char                  *tmp_record_data_ = nullptr;  // 用于存放新的Record的data
+  char                  *tmp_record_data_ = nullptr;  
 
-  // 存储已经更新过的行数据，用于回滚
+  
   std::vector<RID>                old_rids_;
   std::vector<std::vector<Value>> old_values_;
   bool                            invalid_ = false;

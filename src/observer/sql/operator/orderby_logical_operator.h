@@ -7,10 +7,7 @@
 #include "sql/parser/value.h"
 #include "storage/field/field.h"
 #include "sql/stmt/orderby_stmt.h"
-/**
- * @brief 逻辑算子
- * @ingroup LogicalOperator
- */
+
 class OrderByLogicalOperator : public LogicalOperator
 {
 public:
@@ -25,7 +22,7 @@ public:
   std::vector<std::unique_ptr<Expression>>  &exprs() { return exprs_; }
 
 private:
-  std::vector<std::unique_ptr<OrderByUnit>> orderby_units_;  // 排序列
+  std::vector<std::unique_ptr<OrderByUnit>> orderby_units_;  
 
   std::vector<std::unique_ptr<Expression>> exprs_;
 };

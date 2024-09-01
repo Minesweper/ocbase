@@ -17,11 +17,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/operator/physical_operator.h"
 #include <vector>
 
-/**
- * @brief 字符串列表物理算子
- * @ingroup PhysicalOperator
- * @details 用于将字符串列表转换为物理算子,为了方便实现的接口，比如help命令
- */
+
 class StringListPhysicalOperator : public PhysicalOperator
 {
 public:

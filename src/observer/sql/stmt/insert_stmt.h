@@ -20,10 +20,7 @@ See the Mulan PSL v2 for more details. */
 class Table;
 class Db;
 
-/**
- * @brief 插入语句
- * @ingroup Statement
- */
+
 class InsertStmt : public Stmt
 {
 public:

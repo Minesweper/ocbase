@@ -28,26 +28,21 @@ static int ATTR_TYPE_LENGTH[] = {-1, 4, 4, 4, 8, 4, 8, MAX_TEXT_LENGTH, 4, -1};
 enum AttrType
 {
   UNDEFINED,
-  CHARS,   ///< 字符串类型
-  INTS,    ///< 整数类型(4字节)
-  FLOATS,  ///< 浮点数类型(4字节)
+  CHARS,   
+  INTS,    
+  FLOATS,  
   DOUBLES,
-  DATES,     ///< 日期类型
-  LONGS,     ///< Int64
-  TEXTS,     ///< text类型，最大65535字节
-  NULLS,     ///< null类型
-  BOOLEANS,  ///< boolean类型，当前不是由parser解析出来的，是程序内部使用的
+  DATES,     
+  LONGS,     
+  TEXTS,     
+  NULLS,     
+  BOOLEANS,  
 };
-// CHARS..DATES 是字段类型，FieldMeta 会进行检查
-// 所有都是值类型，BOOLEANS 是内部值类型
 
 const char *attr_type_to_string(AttrType type);
 AttrType    attr_type_from_string(const char *s);
 
-/**
- * @brief 属性的值
- *
- */
+
 class Value
 {
 public:
@@ -128,7 +123,7 @@ public:
     if (target_type == attr_type_) {
       return RC::SUCCESS;
     }
-    if (target_type == DATES || attr_type_ == NULLS)  // 允许转为 DATE，NULL 不允许进行转换
+    if (target_type == DATES || attr_type_ == NULLS)  
     {
       return RC::SCHEMA_FIELD_TYPE_MISMATCH;
     }
@@ -156,9 +151,6 @@ public:
 
 public:
   /**
-   * 获取对应的值
-   * 如果当前的类型与期望获取的类型不符，就会执行转换操作
-   * NULLS类型不适用于以下接口
    */
   int         get_int() const;
   float       get_float() const;

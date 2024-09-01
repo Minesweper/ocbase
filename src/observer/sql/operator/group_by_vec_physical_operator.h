@@ -13,10 +13,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/expr/aggregate_hash_table.h"
 #include "sql/operator/physical_operator.h"
 
-/**
- * @brief Group By þë®þÉåþ«ùÕ¡É(vectorized)
- * @ingroup PhysicalOperator
- */
+
 class GroupByVecPhysicalOperator : public PhysicalOperator
 {
 public:
