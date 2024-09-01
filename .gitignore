@@ -1,8 +1,5 @@
-./deps/3rd
-./deps/libevent
-./deps/googletest
-./deps/jsoncpp
-./deps/benchmark
+./benchmark/.vs
+./benchmark/out
 .vscode
 .vs
 ./src/.vs
