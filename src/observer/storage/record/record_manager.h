@@ -21,6 +21,7 @@ See the Mulan PSL v2 for more details. */
 #include "storage/record/record.h"
 #include "storage/record/record_log.h"
 #include "common/types.h"
+#include <string>
 
 class LogHandler;
 class ConditionFilter;
@@ -388,6 +389,9 @@ public:
    */
   RC insert_record(const char *data, int record_size, RID *rid);
 
+  RC update_record(Record *rec) { return update_record(rec, nullptr); }
+
+  RC update_record(Record *rec, const char* data);
   /**
    * @brief 数据库恢复时，在指定文件指定位置插入数据
    *

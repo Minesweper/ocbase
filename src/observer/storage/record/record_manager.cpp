@@ -585,6 +585,29 @@ RC RecordFileHandler::init_free_pages()
   return rc;
 }
 
+RC RecordFileHandler::update_record(Record *rec, const char* data)
+{
+  RC ret = RC::SUCCESS;
+  if (storage_format_ == StorageFormat::ROW_FORMAT) {
+    RowRecordPageHandler record_page_handler;
+    ret = record_page_handler.init(*disk_buffer_pool_, rec->rid().page_num, false /*readonly*/);
+    if (ret != RC::SUCCESS) {
+      LOG_WARN("failed to init record page handler. page num=%d, rc=%s", rec->rid().page_num, strrc(ret));
+      return ret;
+    }
+    return record_page_handler.update_record(rec, data);
+  }
+  else if (storage_format_ == StorageFormat::PAX_FORMAT) {
+    PaxRecordPageHandler record_page_handler;
+    ret = record_page_handler.init(*disk_buffer_pool_, rec->rid().page_num, false /*readonly*/);
+    if (ret != RC::SUCCESS) {
+      LOG_WARN("failed to init record page handler. page num=%d, rc=%s", rec->rid().page_num, strrc(ret));
+      return ret;
+    }
+    return record_page_handler.update_record(rec, data);
+  }
+}
+
 RC RecordFileHandler::insert_record(const char *data, int record_size, RID *rid)
 {
   RC ret = RC::SUCCESS;

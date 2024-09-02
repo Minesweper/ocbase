@@ -58,6 +58,9 @@ public:
 
   RC recover_insert_record(Record &record);
 
+  RC update_record(Record &record, const char *attr_name, Value *value);
+  RC update_record(Record &record, const std::vector<std::string> &attr_names, const std::vector<Value *> &values);
+  RC update_record(Record &old_record, Record &new_record);
   // TODO refactor
   RC create_index(Trx *trx, const FieldMeta *field_meta, const char *index_name);
 
