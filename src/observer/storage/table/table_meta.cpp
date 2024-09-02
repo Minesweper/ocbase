@@ -166,6 +166,8 @@ int TableMeta::index_num() const { return indexes_.size(); }
 
 int TableMeta::record_size() const { return record_size_; }
 
+const FieldMeta *TableMeta::null_field() const { return &fields_[0]; }
+
 int TableMeta::serialize(std::ostream &ss) const
 {
   Json::Value table_value;
