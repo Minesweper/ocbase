@@ -19,10 +19,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/expr/expression.h"
 #include "sql/stmt/groupby_stmt.h"
 
-/**
- * @brief Group By 物理算子基类
- * @ingroup PhysicalOperator
- */
+
 class GroupByPhysicalOperator : public PhysicalOperator
 {
 public:
