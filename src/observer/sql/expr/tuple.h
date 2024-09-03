@@ -633,19 +633,19 @@ public:
       }
       // 6. do aggr calc
       switch (expr_->get_aggr_func_type()) {
-        case AggrFuncType::AGG_COUNT: {
+        case AggrFuncType::COUNT: {
           // do nothing
         } break;
-        case AggrFuncType::AGG_AVG:
-        case AggrFuncType::AGG_SUM: {
+        case AggrFuncType::AVG:
+        case AggrFuncType::SUM: {
           result_.add(temp);
         } break;
-        case AggrFuncType::AGG_MAX: {
+        case AggrFuncType::MAX: {
           if (result_ < temp) {
             result_ = temp;
           }
         } break;
-        case AggrFuncType::AGG_MIN: {
+        case AggrFuncType::MIN: {
           if (result_ > temp) {
             result_ = temp;
           }
@@ -659,7 +659,7 @@ public:
     void finish()
     {
       // 1. count(*) count(1) count(1+1) count(id)
-      if (expr_->get_aggr_func_type() == AGG_COUNT) {
+      if (expr_->get_aggr_func_type() == AggrFuncType::COUNT) {
         result_.set_int(count_);
         return;
       }
@@ -670,10 +670,10 @@ public:
       }
       // 3. other situation
       switch (expr_->get_aggr_func_type()) {
-        case AggrFuncType::AGG_COUNT: {
+        case AggrFuncType::COUNT: {
           result_.set_int(count_);
         } break;
-        case AggrFuncType::AGG_AVG: {
+        case AggrFuncType::AVG: {
           result_.div(Value(count_));
         } break;
         default: {
@@ -774,7 +774,7 @@ public:
           LOG_INFO("Field is found in field_exprs");
           return RC::SUCCESS;
         }
-      } else if (exprs_[i]->type() == ExprType::AGGRFUNCTION) {
+      } else if (exprs_[i]->type() == ExprType::AGGREGATION) {
         if (spec.alias() == exprs_[i]->name()) {
           cell  = (*cells_)[i];
           index = i;
