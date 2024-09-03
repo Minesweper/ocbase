@@ -649,10 +649,24 @@ UnboundAggregateExpr::UnboundAggregateExpr(const char *aggregate_name, Expressio
 {}
 
 ////////////////////////////////////////////////////////////////////////////////
-AggregateExpr::AggregateExpr(Type type, Expression *child) : aggregate_type_(type), child_(child) {}
 
-AggregateExpr::AggregateExpr(Type type, unique_ptr<Expression> child) : aggregate_type_(type), child_(std::move(child))
+AggregateExpr::AggregateExpr(AggrFuncType type, Expression *param)
+    : AggregateExpr(type, std::unique_ptr<Expression>(param))
 {}
+
+AggregateExpr::AggregateExpr(AggrFuncType type, unique_ptr<Expression> param)
+    : aggregate_type_(type), param_(std::move(param))
+{
+  auto check_is_constexpr = [](const Expression *expr) -> RC {
+    if (expr->type() == ExprType::FIELD) {
+      return RC::INTERNAL;
+    }
+    return RC::SUCCESS;
+  };
+  if (RC::SUCCESS == param_->traverse_check(check_is_constexpr)) {
+    is_constexpr = true;
+  }
+}
 
 RC AggregateExpr::get_column(Chunk &chunk, Column &column)
 {
@@ -674,14 +688,14 @@ bool AggregateExpr::equal(const Expression &other) const
     return false;
   }
   const AggregateExpr &other_aggr_expr = static_cast<const AggregateExpr &>(other);
-  return aggregate_type_ == other_aggr_expr.aggregate_type() && child_->equal(*other_aggr_expr.child());
+  return aggregate_type_ == other_aggr_expr.aggregate_type() && param_->equal(*other_aggr_expr.child());
 }
 
 unique_ptr<Aggregator> AggregateExpr::create_aggregator() const
 {
   unique_ptr<Aggregator> aggregator;
   switch (aggregate_type_) {
-    case Type::SUM: {
+    case AggrFuncType::SUM: {
       aggregator = make_unique<SumAggregator>();
       break;
     }
@@ -706,24 +720,51 @@ RC AggregateExpr::get_value(const Tuple &tuple, Value &value)
   }
 }
 
-RC AggregateExpr::type_from_string(const char *type_str, AggregateExpr::Type &type)
+RC AggregateExpr::type_from_string(const char *type_str, AggrFuncType &type)
 {
   RC rc = RC::SUCCESS;
   if (0 == strcasecmp(type_str, "count")) {
-    type = Type::COUNT;
+    type = AggrFuncType::COUNT;
   } else if (0 == strcasecmp(type_str, "sum")) {
-    type = Type::SUM;
+    type = AggrFuncType::SUM;
   } else if (0 == strcasecmp(type_str, "avg")) {
-    type = Type::AVG;
+    type = AggrFuncType::AVG;
   } else if (0 == strcasecmp(type_str, "max")) {
-    type = Type::MAX;
+    type = AggrFuncType::MAX;
   } else if (0 == strcasecmp(type_str, "min")) {
-    type = Type::MIN;
+    type = AggrFuncType::MIN;
   } else {
     rc = RC::INVALID_ARGUMENT;
   }
   return rc;
 }
+
+std::string AggregateExpr::get_func_name() const
+{
+  switch (aggregate_type_) {
+    case AggrFuncType::MAX: return "max";
+    case AggrFuncType::MIN: return "min";
+    case AggrFuncType::SUM: return "sum";
+    case AggrFuncType::AVG: return "avg";
+    case AggrFuncType::COUNT: return "count";
+    default: break;
+  }
+  return "unknown_aggr_fun";
+}
+
+AttrType AggregateExpr::value_type() const
+{
+  switch (aggregate_type_) {
+    case AggrFuncType::MAX:
+    case AggrFuncType::MIN:
+    case AggrFuncType::SUM: return param_->value_type(); break;
+    case AggrFuncType::AVG: return DOUBLES; break;
+    case AggrFuncType::COUNT: return INTS; break;
+    default: return UNDEFINED; break;
+  }
+  return UNDEFINED;
+}
+
 
 SubQueryExpr::SubQueryExpr(const SelectSqlNode &sql_node) { sql_node_ = std::make_unique<SelectSqlNode>(sql_node); }
 
@@ -983,62 +1024,4 @@ RC SysFuncExpr::check_param_type_and_number() const
     } break;
   }
   return rc;
-}
-
-AggrFuncExpr::AggrFuncExpr(AggrFuncType type, Expression *param)
-    : AggrFuncExpr(type, std::unique_ptr<Expression>(param))
-{}
-AggrFuncExpr::AggrFuncExpr(AggrFuncType type, unique_ptr<Expression> param) : type_(type), param_(std::move(param))
-{
-  //
-  auto check_is_constexpr = [](const Expression *expr) -> RC {
-    if (expr->type() == ExprType::FIELD) {
-      return RC::INTERNAL;
-    }
-    return RC::SUCCESS;
-  };
-  if (RC::SUCCESS == param_->traverse_check(check_is_constexpr)) {
-    param_is_constexpr_ = true;
-  }
-}
-
-std::string AggrFuncExpr::get_func_name() const
-{
-  switch (type_) {
-    case AggrFuncType::AGG_MAX: return "max";
-    case AggrFuncType::AGG_MIN: return "min";
-    case AggrFuncType::AGG_SUM: return "sum";
-    case AggrFuncType::AGG_AVG: return "avg";
-    case AggrFuncType::AGG_COUNT: return "count";
-    default: break;
-  }
-  return "unknown_aggr_fun";
-}
-
-AttrType AggrFuncExpr::value_type() const
-{
-  switch (type_) {
-    case AggrFuncType::AGG_MAX:
-    case AggrFuncType::AGG_MIN:
-    case AggrFuncType::AGG_SUM: return param_->value_type(); break;
-    case AggrFuncType::AGG_AVG: return DOUBLES; break;
-    case AggrFuncType::AGG_COUNT: return INTS; break;
-    default: return UNDEFINED; break;
-  }
-  return UNDEFINED;
-}
-
-// Project 算子的cell_at 会调用该函数取得聚集函数最后计算的结果,传入的Tuple 就是gropuby 中的 grouptuple
-RC AggrFuncExpr::get_value(const Tuple &tuple, Value &cell) 
-{
-  TupleCellSpec spec(name());
-  // int index = 0;
-  //  spec.set_agg_type(get_aggr_func_type());
-  if (is_first_) {
-    bool &is_first_ref = const_cast<bool &>(is_first_);
-    is_first_ref       = false;
-    return tuple.find_cell(spec, cell, const_cast<int &>(index_));
-  } else {
-    return tuple.cell_at(index_, cell);
-  }
 }

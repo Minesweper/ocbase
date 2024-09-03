@@ -18,7 +18,7 @@ See the Mulan PSL v2 for more details. */
 using namespace std;
 using namespace common;
 
-AggregateVecPhysicalOperator::AggregateVecPhysicalOperator(vector<Expression *> &&expressions)
+AggregateVecPhysicalOperator::AggregateVecPhysicalOperator(vector<unique_ptr<AggrFuncExpr>> &&expressions)
 {
   aggregate_expressions_ = std::move(expressions);
   value_expressions_.reserve(aggregate_expressions_.size());

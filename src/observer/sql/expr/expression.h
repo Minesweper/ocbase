@@ -53,7 +53,6 @@ enum class ExprType
   AGGREGATION,  ///< 聚合运算
   SUBQUERY,
   EXPRLIST,
-  AGGRFUNCTION,
   SYSFUNCTION,
 };
 
@@ -643,49 +642,102 @@ private:
 class AggregateExpr : public Expression
 {
 public:
-  enum class Type
-  {
-    COUNT,
-    SUM,
-    AVG,
-    MAX,
-    MIN,
-  };
+  AggregateExpr(AggrFuncType type, Expression *child);
+  AggregateExpr(AggrFuncType type, std::unique_ptr<Expression> child);
 
-public:
-  AggregateExpr(Type type, Expression *child);
-  AggregateExpr(Type type, std::unique_ptr<Expression> child);
   virtual ~AggregateExpr() = default;
 
   bool equal(const Expression &other) const override;
 
   ExprType type() const override { return ExprType::AGGREGATION; }
 
-  AttrType value_type() const override { return child_->value_type(); }
-  int      value_length() const override { return child_->value_length(); }
+  AttrType value_type() const override {
+    switch (aggregate_type_) {
+      case AggrFuncType::MAX:
+      case AggrFuncType::MIN:
+      case AggrFuncType::SUM: return param_->value_type(); break;
+      case AggrFuncType::AVG: return DOUBLES; break;
+      case AggrFuncType::COUNT: return INTS; break;
+      default: return UNDEFINED; break;
+    }
+    return UNDEFINED;
+  }
+  int      value_length() const override { return param_->value_length(); }
+
+  std::unique_ptr<Expression>       &get_param() { return param_; }
+  const std::unique_ptr<Expression> &get_param() const { return param_; }
 
   RC get_value(const Tuple &tuple, Value &value) override;
 
   RC get_column(Chunk &chunk, Column &column) override;
 
-  Type aggregate_type() const { return aggregate_type_; }
+  AggrFuncType aggregate_type() const { return aggregate_type_; }
 
-  std::unique_ptr<Expression> &child() { return child_; }
+  std::unique_ptr<Expression> &child() { return param_; }
 
-  const std::unique_ptr<Expression> &child() const { return child_; }
+  const std::unique_ptr<Expression> &child() const { return param_; }
 
   std::unique_ptr<Aggregator> create_aggregator() const;
 
+  std::string get_func_name() const;
+
+  AggrFuncType get_aggr_func_type() const { return aggregate_type_; }
+
+  // count(*) count(1) count(1+1) 需要特殊处理 null
+  bool is_count_constexpr() const
+  {
+    if (aggregate_type_ == AggrFuncType::COUNT && is_constexpr) {
+      return true;
+    }
+    return false;
+  }
+
+  void set_aggr_fun_type(AggrFuncType type) { aggregate_type_ = type; }
+
 public:
-  static RC type_from_string(const char *type_str, Type &type);
+  static RC type_from_string(const char *type_str, AggrFuncType &type);
+
+  void traverse(const std::function<void(Expression *)> &func, const std::function<bool(Expression *)> &filter) override
+  {
+    if (filter(this)) {
+      param_->traverse(func, filter);
+      func(this);
+    }
+  }
+
+  RC traverse_check(const std::function<RC(Expression *)> &check_func) override
+  {
+    RC rc = RC::SUCCESS;
+    if (RC::SUCCESS != (rc = param_->traverse_check(check_func))) {
+      return rc;
+    }
+    if (RC::SUCCESS != (rc = check_func(this))) {
+      return rc;
+    }
+    return rc;
+  }
+
+  std::unique_ptr<Expression> deep_copy() const override
+  {
+    std::unique_ptr<Expression> new_param;
+    if (param_) {
+      new_param = param_->deep_copy();
+    }
+    auto new_expr = std::make_unique<AggregateExpr>(aggregate_type_, std::move(new_param));
+    new_expr->set_name(name());
+    return new_expr;
+  }
 
 private:
-  Type                        aggregate_type_;
-  std::unique_ptr<Expression> child_;
+  AggrFuncType                aggregate_type_;
+  std::unique_ptr<Expression> param_;
   bool                        is_constexpr = false;
   bool                        is_first     = true;
   int                         index        = -1;
 };
+
+using AggrFuncExpr = AggregateExpr;
+
 
 class SelectStmt;
 class LogicalOperator;
@@ -721,78 +773,6 @@ private:
   std::unique_ptr<PhysicalOperator> physical_oper_;
 };
 
-class AggrFuncExpr : public Expression
-{
-public:
-  AggrFuncExpr(AggrFuncType type, Expression *param);
-  AggrFuncExpr(AggrFuncType type, std::unique_ptr<Expression> param);
-  virtual ~AggrFuncExpr() = default;
-
-  ExprType type() const override { return ExprType::AGGRFUNCTION; }
-  // void set_param_constexpr(bool flag)
-  // {
-  //   param_is_constexpr_ = flag;
-  // }
-  std::unique_ptr<Expression>       &get_param() { return param_; }
-  const std::unique_ptr<Expression> &get_param() const { return param_; }
-  RC                                 get_value(const Tuple &tuple, Value &value) override;
-
-  std::string get_func_name() const;
-
-  AttrType     value_type() const override;
-  AggrFuncType get_aggr_func_type() const { return type_; }
-
-  // count(*) count(1) count(1+1) 需要特殊处理 null
-  bool is_count_constexpr() const
-  {
-    if (type_ == AggrFuncType::AGG_COUNT && param_is_constexpr_) {
-      return true;
-    }
-    return false;
-  }
-
-  void set_aggr_fun_type(AggrFuncType type) { type_ = type; }
-
-  // 聚集函数表达式的 traverse[_check] 需要特殊对待 param 可能是个 *
-  void traverse(const std::function<void(Expression *)> &func, const std::function<bool(Expression *)> &filter) override
-  {
-    if (filter(this)) {
-      param_->traverse(func, filter);
-      func(this);
-    }
-  }
-
-  RC traverse_check(const std::function<RC(Expression *)> &check_func) override
-  {
-    RC rc = RC::SUCCESS;
-    if (RC::SUCCESS != (rc = param_->traverse_check(check_func))) {
-      return rc;
-    }
-    if (RC::SUCCESS != (rc = check_func(this))) {
-      return rc;
-    }
-    return rc;
-  }
-
-  std::unique_ptr<Expression> deep_copy() const override
-  {
-    std::unique_ptr<Expression> new_param;
-    if (param_) {
-      new_param = param_->deep_copy();
-    }
-    auto new_expr = std::make_unique<AggrFuncExpr>(type_, std::move(new_param));
-    new_expr->set_name(name());
-    return new_expr;
-  }
-
-private:
-  AggrFuncType                type_;
-  std::unique_ptr<Expression> param_;
-  bool                        param_is_constexpr_ = false;
-
-  bool is_first_ = true;
-  int  index_    = -1;
-};
 
 class SysFuncExpr : public Expression
 {

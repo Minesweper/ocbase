@@ -27,11 +27,11 @@ class OrderByUnit;
 
 typedef enum
 {
-  AGG_MAX,
-  AGG_MIN,
-  AGG_SUM,
-  AGG_AVG,
-  AGG_COUNT,
+  MAX,
+  MIN,
+  SUM,
+  AVG,
+  COUNT,
   AGGR_FUNC_TYPE_NUM
 } AggrFuncType;
 typedef enum
