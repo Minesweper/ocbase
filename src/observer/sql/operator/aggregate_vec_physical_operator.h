@@ -67,7 +67,7 @@ private:
     std::vector<void *> data_;
   };
   std::vector<std::unique_ptr<AggrFuncExpr>> aggregate_expressions_;  /// 聚合表达式
-  std::vector<Expression *> value_expressions_;
+  std::vector<std::unique_ptr<AggrFuncExpr>> value_expressions_;
   Chunk                     chunk_;
   Chunk                     output_chunk_;
   AggregateValues           aggr_values_;

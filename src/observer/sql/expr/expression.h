@@ -736,7 +736,7 @@ private:
   int                         index        = -1;
 };
 
-using AggrFuncExpr = AggregateExpr;
+typedef AggregateExpr AggrFuncExpr
 
 
 class SelectStmt;

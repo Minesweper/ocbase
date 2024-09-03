@@ -35,7 +35,7 @@ AggregateVecPhysicalOperator::AggregateVecPhysicalOperator(vector<unique_ptr<Agg
     ASSERT(expr->type() == ExprType::AGGREGATION, "expected an aggregation expression");
     auto *aggregate_expr = static_cast<AggregateExpr *>(expr);
 
-    if (aggregate_expr->aggregate_type() == AggregateExpr::Type::SUM) {
+    if (aggregate_expr->aggregate_type() == AggrFuncType::SUM) {
       if (aggregate_expr->value_type() == AttrType::INTS) {
         void *aggr_value                     = malloc(sizeof(SumState<int>));
         ((SumState<int> *)aggr_value)->value = 0;
