@@ -29,6 +29,9 @@ public:
 
   virtual ~GroupByPhysicalOperator() = default;
   PhysicalOperatorType type() const override { return PhysicalOperatorType::GROUP_BY; }
+  RC                   open(Trx *trx) override;
+  RC                   next() override;
+  RC                   close() override;
 
 protected:
   using AggregatorList = std::vector<std::unique_ptr<Aggregator>>;

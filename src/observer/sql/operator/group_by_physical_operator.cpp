@@ -108,3 +108,91 @@ RC GroupByPhysicalOperator::evaluate(GroupValueType &group_value)
 
   return rc;
 }
+
+RC GroupByPhysicalOperator::open(Trx *trx)
+{
+  RC rc = RC::SUCCESS;
+  if (children_.size() != 1) {
+    LOG_WARN("GroupByPhysicalOperator must has one child");
+    return RC::INTERNAL;
+  }
+  if (RC::SUCCESS != (rc = children_[0]->open(trx))) {
+    rc = RC::INTERNAL;
+    LOG_WARN("GroupByOperater child open failed!");
+  }
+  tuple_.reset();
+  tuple_.set_tuple(children_[0]->current_tuple());
+  is_record_eof_ = false;
+  is_first_      = true;
+  is_new_group_  = true;
+  return rc;
+}
+
+RC GroupByPhysicalOperator::next()
+{
+  if (is_record_eof_) {
+    return RC::RECORD_EOF;
+  }
+  RC rc = RC::SUCCESS;
+  if (is_first_) {
+    rc = children_[0]->next();
+    // maybe empty. count(x) -> 0
+    if (RC::SUCCESS != rc) {
+      if (RC::RECORD_EOF == rc) {
+        is_record_eof_ = true;
+        if (aggregate_expressions_.empty()) {
+          tuple_.do_aggregate_done();
+          return RC::SUCCESS;
+        }
+      }
+      return rc;
+    }
+    is_first_     = false;
+    is_new_group_ = true;
+    // set initial value of pre_values_
+    for (const std::unique_ptr<Expression> &expr : aggregate_expressions_) {
+      Value val;
+      expr->get_value(*children_[0]->current_tuple(), val);
+      pre_values_.emplace_back(val);
+    }
+    LOG_INFO("GroupByOperator set first success!");
+  }
+
+  while (true) {
+    // 0. if the last row is new group, do aggregate first
+    if (is_new_group_) {
+      tuple_.do_aggregate_first();
+      is_new_group_ = false;
+    }
+    if (RC::SUCCESS != (rc = children_[0]->next())) {
+      break;
+    }
+    // 1. adjust whether current tuple is new group or not
+    for (size_t i = 0; i < aggregate_expressions_.size(); ++i) {
+      const std::unique_ptr<Expression> &field = aggregate_expressions_[i];
+      Value                              value;
+      field->get_value(*children_[0]->current_tuple(), value);
+      if (value.compare(pre_values_[i]) != 0) {
+        // 2. update pre_values_ and set new group
+        pre_values_[i] = value;
+        is_new_group_  = true;
+      }
+    }
+    // 3. if new group, should return a row
+    if (is_new_group_) {
+      tuple_.do_aggregate_done();
+      return rc;
+    }
+    // 4. if not new group, execute aggregate function and update result
+    tuple_.do_aggregate();
+  }  // end while
+
+  if (RC::RECORD_EOF == rc) {
+    is_record_eof_ = true;
+    tuple_.do_aggregate_done();
+    return RC::SUCCESS;
+  }
+  return rc;
+}
+
+RC GroupByPhysicalOperator::close() { return children_[0]->close(); }
