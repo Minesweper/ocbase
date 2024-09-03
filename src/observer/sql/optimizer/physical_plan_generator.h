@@ -340,31 +340,30 @@ private:
     oper.reset(calc_oper);
     return rc;
   }
-  static RC create_plan(GroupByLogicalOperator& logical_oper, std::unique_ptr<PhysicalOperator>& oper) {
+  static RC create_plan(GroupByLogicalOperator& groupby_oper, std::unique_ptr<PhysicalOperator>& oper) {
+    std::vector<std::unique_ptr<LogicalOperator>> &child_opers = groupby_oper.children();
+    std::unique_ptr<PhysicalOperator>         child_phy_oper;
+
     RC rc = RC::SUCCESS;
-
-    std::vector<std::unique_ptr<Expression>> &group_by_expressions = logical_oper.group_by_expressions();
-    std::unique_ptr<GroupByPhysicalOperator>  group_by_oper;
-    if (group_by_expressions.empty()) {
-      group_by_oper = std::make_unique<ScalarGroupByPhysicalOperator>(std::move(logical_oper.aggregate_expressions()));
-    } else {
-      group_by_oper = std::make_unique<HashGroupByPhysicalOperator>(
-          std::move(logical_oper.group_by_expressions()), std::move(logical_oper.aggregate_expressions()));
+    if (!child_opers.empty()) {
+      LogicalOperator *child_oper = child_opers.front().get();
+      rc                          = create(*child_oper, child_phy_oper);
+      if (rc != RC::SUCCESS) {
+        LOG_WARN("failed to create groupby logical operator's child physical operator. rc=%s", strrc(rc));
+        return rc;
+      }
     }
 
-    ASSERT(logical_oper.children().size() == 1, "group by operator should have 1 child");
-
-    LogicalOperator                  &child_oper = *logical_oper.children().front();
-    std::unique_ptr<PhysicalOperator> child_physical_oper;
-    rc = create(child_oper, child_physical_oper);
-    if (OB_FAIL(rc)) {
-      LOG_WARN("failed to create child physical operator of group by operator. rc=%s", strrc(rc));
-      return rc;
+    GroupByPhysicalOperator *groupby_operator = new GroupByPhysicalOperator(std::move(groupby_oper.group_by_expressions()),
+            std::move(groupby_oper.aggregate_expressions()),
+        std::move(groupby_oper.field_exprs()));
+    if (child_phy_oper) {
+      groupby_operator->add_child(std::move(child_phy_oper));
     }
 
-    group_by_oper->add_child(std::move(child_physical_oper));
+    oper = std::unique_ptr<PhysicalOperator>(groupby_operator);
 
-    oper = std::move(group_by_oper);
+    LOG_TRACE("create a groupby physical operator");
     return rc;
   }
   static RC create_vec_plan(ProjectLogicalOperator& project_oper, std::unique_ptr<PhysicalOperator>& oper) {

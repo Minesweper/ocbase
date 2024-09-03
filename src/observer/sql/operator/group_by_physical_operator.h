@@ -13,9 +13,11 @@ See the Mulan PSL v2 for more details. */
 //
 
 #pragma once
-
+#include <memory>
 #include "sql/operator/physical_operator.h"
 #include "sql/expr/composite_tuple.h"
+#include "sql/expr/expression.h"
+#include "sql/stmt/groupby_stmt.h"
 
 /**
  * @brief Group By 物理算子基类
@@ -25,7 +27,11 @@ class GroupByPhysicalOperator : public PhysicalOperator
 {
 public:
   GroupByPhysicalOperator(std::vector<Expression *> &&expressions);
+  GroupByPhysicalOperator(std::vector<std::unique_ptr<Expression>> &&groupby_fields,
+      std::vector<std::unique_ptr<AggrFuncExpr>> &&agg_exprs, std::vector<std::unique_ptr<FieldExpr>> &&field_exprs);
+
   virtual ~GroupByPhysicalOperator() = default;
+  PhysicalOperatorType type() const override { return PhysicalOperatorType::GROUP_BY; }
 
 protected:
   using AggregatorList = std::vector<std::unique_ptr<Aggregator>>;
@@ -52,6 +58,11 @@ protected:
   RC evaluate(GroupValueType &group_value);
 
 protected:
+  bool                      is_first_      = true;
+  bool                      is_new_group_  = true;
+  bool                      is_record_eof_ = false;
   std::vector<Expression *> aggregate_expressions_;  /// 聚合表达式
   std::vector<Expression *> value_expressions_;      /// 计算聚合时的表达式
+  std::vector<Value>        pre_values_;
+  GroupTuple                tuple_;
 };

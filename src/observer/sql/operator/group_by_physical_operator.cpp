@@ -32,6 +32,12 @@ GroupByPhysicalOperator::GroupByPhysicalOperator(vector<Expression *> &&expressi
     value_expressions_.emplace_back(child_expr);
   });
 }
+GroupByPhysicalOperator::GroupByPhysicalOperator(std::vector<std::unique_ptr<Expression>> &&groupby_fields,
+    std::vector<std::unique_ptr<AggrFuncExpr>> &&agg_exprs, std::vector<std::unique_ptr<FieldExpr>> &&field_exprs)
+    : aggregate_expressions_(std::move(groupby_fields))
+{
+  tuple_.init(std::move(agg_exprs), std::move(field_exprs));
+}
 
 void GroupByPhysicalOperator::create_aggregator_list(AggregatorList &aggregator_list)
 {
