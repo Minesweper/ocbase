@@ -261,7 +261,7 @@ private:
   }
   static RC create_plan(InsertLogicalOperator& insert_oper, std::unique_ptr<PhysicalOperator>& oper) {
     Table                  *table           = insert_oper.table();
-    std::vector<Value>     &values          = insert_oper.values();
+    std::vector<std::vector<Value>>     &values          = insert_oper.values();
     InsertPhysicalOperator *insert_phy_oper = new InsertPhysicalOperator(table, std::move(values));
     oper.reset(insert_phy_oper);
     return RC::SUCCESS;
