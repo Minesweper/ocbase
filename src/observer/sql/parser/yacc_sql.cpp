@@ -111,15 +111,15 @@ AggrFuncType get_aggr_func_type(char *func_name)
     func_name[i] = tolower(func_name[i]);
   }
   if (0 == strcmp(func_name, "max")) {
-    return AggrFuncType::AGG_MAX;
+    return AggrFuncType::MAX;
   } else if (0 == strcmp(func_name, "min")) {
-    return AggrFuncType::AGG_MIN;
+    return AggrFuncType::MIN;
   } else if (0 == strcmp(func_name, "sum")) {
-    return AggrFuncType::AGG_SUM;
+    return AggrFuncType::SUM;
   } else if (0 == strcmp(func_name, "avg")) {
-    return AggrFuncType::AGG_AVG;
+    return AggrFuncType::AVG;
   } else if (0 == strcmp(func_name, "count")) {
-    return AggrFuncType::AGG_COUNT;
+    return AggrFuncType::COUNT;
   }
   return AggrFuncType::AGGR_FUNC_TYPE_NUM;
 }
@@ -4725,7 +4725,7 @@ yyreduce:
       if ((yyvsp[-1].expression)->type() == ExprType::FIELD) {
         FieldExpr *field_expr = static_cast<FieldExpr *>((yyvsp[-1].expression));
         if (field_expr->get_field_name() == "*") {
-          if (get_aggr_func_type((yyvsp[-3].string)) != AggrFuncType::AGG_COUNT) {
+          if (get_aggr_func_type((yyvsp[-3].string)) != AggrFuncType::COUNT) {
             delete (yyvsp[-1].expression);
             yyerror(&(yyloc), sql_string, sql_result, scanner, "only support count(*)");
             YYERROR;

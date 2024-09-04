@@ -50,15 +50,15 @@ AggrFuncType get_aggr_func_type(char *func_name)
     func_name[i] = tolower(func_name[i]);
   }
   if (0 == strcmp(func_name, "max")) {
-    return AggrFuncType::AGG_MAX;
+    return AggrFuncType::MAX;
   } else if (0 == strcmp(func_name, "min")) {
-    return AggrFuncType::AGG_MIN;
+    return AggrFuncType::MIN;
   } else if (0 == strcmp(func_name, "sum")) {
-    return AggrFuncType::AGG_SUM;
+    return AggrFuncType::SUM;
   } else if (0 == strcmp(func_name, "avg")) {
-    return AggrFuncType::AGG_AVG;
+    return AggrFuncType::AVG;
   } else if (0 == strcmp(func_name, "count")) {
-    return AggrFuncType::AGG_COUNT;
+    return AggrFuncType::COUNT;
   } 
   return AggrFuncType::AGGR_FUNC_TYPE_NUM;
 }
@@ -912,7 +912,7 @@ aggr_func_expr:
       if ($3->type() == ExprType::FIELD) {
         FieldExpr* field_expr = static_cast<FieldExpr*>($3);
         if (field_expr->get_field_name() == "*") {
-          if(get_aggr_func_type($1) != AggrFuncType::AGG_COUNT) {
+          if(get_aggr_func_type($1) != AggrFuncType::COUNT) {
             delete $3;
             yyerror(&@$, sql_string, sql_result, scanner, "only support count(*)");
             YYERROR;
