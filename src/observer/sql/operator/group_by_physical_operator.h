@@ -23,7 +23,7 @@ See the Mulan PSL v2 for more details. */
 class GroupByPhysicalOperator : public PhysicalOperator
 {
 public:
-  //GroupByPhysicalOperator(std::vector<Expression *> &&expressions);
+  GroupByPhysicalOperator(std::vector<Expression *> &&expressions);
   GroupByPhysicalOperator(std::vector<std::unique_ptr<Expression>> &&groupby_fields,
       std::vector<std::unique_ptr<AggrFuncExpr>> &&agg_exprs, std::vector<std::unique_ptr<FieldExpr>> &&field_exprs);
 

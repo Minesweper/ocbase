@@ -21,6 +21,18 @@ See the Mulan PSL v2 for more details. */
 using namespace std;
 using namespace common;
 
+GroupByPhysicalOperator::GroupByPhysicalOperator(vector<Expression *> &&expressions)
+{
+  value_expressions_.reserve(expressions.size());
+  for (auto* tmp : expressions) {
+    auto       *aggregate_expr = static_cast<AggregateExpr *>(tmp);
+    Expression *child_expr     = aggregate_expr->child().get();
+    ASSERT(child_expr != nullptr, "aggregate expression must have a child expression");
+    value_expressions_.emplace_back(child_expr);
+    aggregate_expressions_.emplace_back(unique_ptr(tmp));
+  }
+}
+
 GroupByPhysicalOperator::GroupByPhysicalOperator(std::vector<std::unique_ptr<Expression>> &&groupby_fields,
     std::vector<std::unique_ptr<AggrFuncExpr>> &&agg_exprs, std::vector<std::unique_ptr<FieldExpr>> &&field_exprs)
     : aggregate_expressions_(std::move(groupby_fields))
