@@ -785,7 +785,7 @@ select_stmt:        /*  select 语句的语法解析树*/
       $$ = new ParsedSqlNode(SCF_SELECT);
       if ($2 != nullptr) {
         std::reverse($2->begin(), $2->end());
-        $$->selection.project_exprs.swap(*$2);
+        $$->selection.expressions.swap(*$2);
         delete $2;
       }
     }
