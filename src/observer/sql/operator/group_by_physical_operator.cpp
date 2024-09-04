@@ -75,7 +75,7 @@ RC GroupByPhysicalOperator::evaluate(GroupValueType &group_value)
   RC rc = RC::SUCCESS;
 
   vector<TupleCellSpec> aggregator_names;
-  for (auto expr : aggregate_expressions_) {
+  for (auto& expr : aggregate_expressions_) {
     aggregator_names.emplace_back(expr->name());
   }
 
