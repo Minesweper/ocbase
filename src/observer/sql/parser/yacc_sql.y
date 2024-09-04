@@ -794,7 +794,7 @@ select_stmt:        /*  select 语句的语法解析树*/
       $$ = new ParsedSqlNode(SCF_SELECT);
       if ($2 != nullptr) {
         std::reverse($2->begin(), $2->end());
-        $$->selection.project_exprs.swap(*$2);
+        $$->selection.expressions.swap(*$2);
         delete $2;
       }
       if ($5 != nullptr) {
@@ -809,9 +809,9 @@ select_stmt:        /*  select 语句的语法解析树*/
         $$->selection.conditions = $6;
       }
       if ($7 != nullptr) {
-        $$->selection.groupby_exprs.swap(*$7);
+        $$->selection.group_by.swap(*$7);
         delete $7;
-        std::reverse($$->selection.groupby_exprs.begin(), $$->selection.groupby_exprs.end());
+        std::reverse($$->selection.group_by.begin(), $$->selection.group_by.end());
       }
       $$->selection.having_conditions = nullptr;
       if ($8 != nullptr) {
@@ -819,7 +819,7 @@ select_stmt:        /*  select 语句的语法解析树*/
       }
 
       if ($9 != nullptr) {
-        $$->selection.orderbys.swap(*$9);
+        $$->selection.order_by.swap(*$9);
         delete $9;
       }
       delete $4;

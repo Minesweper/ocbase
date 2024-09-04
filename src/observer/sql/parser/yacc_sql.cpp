@@ -4540,7 +4540,7 @@ yyreduce:
       (yyval.sql_node) = new ParsedSqlNode(SCF_SELECT);
       if ((yyvsp[-7].expression_list) != nullptr) {
         std::reverse((yyvsp[-7].expression_list)->begin(), (yyvsp[-7].expression_list)->end());
-        (yyval.sql_node)->selection.project_exprs.swap(*(yyvsp[-7].expression_list));
+        (yyval.sql_node)->selection.expressions.swap(*(yyvsp[-7].expression_list));
         delete (yyvsp[-7].expression_list);
       }
       if ((yyvsp[-4].inner_joins_list) != nullptr) {
@@ -4555,10 +4555,9 @@ yyreduce:
         (yyval.sql_node)->selection.conditions = (yyvsp[-3].expression);
       }
       if ((yyvsp[-2].expression_list) != nullptr) {
-        (yyval.sql_node)->selection.groupby_exprs.swap(*(yyvsp[-2].expression_list));
+        (yyval.sql_node)->selection.group_by.swap(*(yyvsp[-2].expression_list));
         delete (yyvsp[-2].expression_list);
-        std::reverse(
-            (yyval.sql_node)->selection.groupby_exprs.begin(), (yyval.sql_node)->selection.groupby_exprs.end());
+        std::reverse((yyval.sql_node)->selection.group_by.begin(), (yyval.sql_node)->selection.group_by.end());
       }
       (yyval.sql_node)->selection.having_conditions = nullptr;
       if ((yyvsp[-1].expression) != nullptr) {
@@ -4566,7 +4565,7 @@ yyreduce:
       }
 
       if ((yyvsp[0].orderby_unit_list) != nullptr) {
-        (yyval.sql_node)->selection.orderbys.swap(*(yyvsp[0].orderby_unit_list));
+        (yyval.sql_node)->selection.order_by.swap(*(yyvsp[0].orderby_unit_list));
         delete (yyvsp[0].orderby_unit_list);
       }
       delete (yyvsp[-5].inner_joins);
