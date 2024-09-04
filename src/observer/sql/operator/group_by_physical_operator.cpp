@@ -32,10 +32,14 @@ void GroupByPhysicalOperator::create_aggregator_list(AggregatorList &aggregator_
 {
   aggregator_list.clear();
   aggregator_list.reserve(aggregate_expressions_.size());
-  ranges::for_each(aggregate_expressions_, [&aggregator_list](std::unique_ptr<Expression> expr) {
+  /* ranges::for_each(aggregate_expressions_, [&aggregator_list](std::unique_ptr<Expression> expr) {
     auto aggregate_expr = static_cast<AggregateExpr *>(expr.get());
     aggregator_list.emplace_back(aggregate_expr->create_aggregator());
-  });
+  });*/
+  for (auto& expr : aggregate_expressions_) {
+    auto aggregate_expr = static_cast<AggregateExpr *>(expr.get());
+    aggregator_list.emplace_back(aggregate_expr->create_aggregator());
+  }
 }
 
 RC GroupByPhysicalOperator::aggregate(AggregatorList &aggregator_list, const Tuple &tuple)
