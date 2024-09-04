@@ -23,7 +23,7 @@ AggregateVecPhysicalOperator::AggregateVecPhysicalOperator(vector<unique_ptr<Agg
   aggregate_expressions_ = std::move(expressions);
   value_expressions_.reserve(aggregate_expressions_.size());
 
-  ranges::for_each(aggregate_expressions_, [this](Expression *expr) {
+  ranges::for_each(aggregate_expressions_, [this](unique_ptr<AggrFuncExpr> expr) {
     auto *      aggregate_expr = static_cast<AggregateExpr *>(expr);
     Expression *child_expr     = aggregate_expr->child().get();
     ASSERT(child_expr != nullptr, "aggregation expression must have a child expression");
