@@ -9,6 +9,7 @@ MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 See the Mulan PSL v2 for more details. */
 
 #include <algorithm>
+#include <memory>
 #include "common/log/log.h"
 #include "sql/operator/aggregate_vec_physical_operator.h"
 #include "sql/expr/aggregate_state.h"
