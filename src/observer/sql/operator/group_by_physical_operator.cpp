@@ -24,12 +24,12 @@ using namespace common;
 GroupByPhysicalOperator::GroupByPhysicalOperator(vector<Expression *> &&expressions)
 {
   value_expressions_.reserve(expressions.size());
-  for (auto* tmp : expressions) {
+  for (Expression* tmp : expressions) {
     auto       *aggregate_expr = static_cast<AggregateExpr *>(tmp);
     Expression *child_expr     = aggregate_expr->child().get();
     ASSERT(child_expr != nullptr, "aggregate expression must have a child expression");
     value_expressions_.emplace_back(child_expr);
-    aggregate_expressions_.emplace_back(unique_ptr(tmp));
+    aggregate_expressions_.emplace_back(tmp);
   }
 }
 
