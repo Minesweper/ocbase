@@ -18,7 +18,7 @@ class GroupByVecPhysicalOperator : public PhysicalOperator
 {
 public:
   GroupByVecPhysicalOperator(
-      std::vector<std::unique_ptr<Expression>> &&group_by_exprs, std::vector<Expression *> &&expressions){};
+      std::vector<std::unique_ptr<Expression>> &&group_by_exprs, std::vector<std::unique_ptr<AggrFuncExpr>> &&expressions){};
 
   virtual ~GroupByVecPhysicalOperator() = default;
 

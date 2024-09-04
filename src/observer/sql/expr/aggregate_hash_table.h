@@ -128,7 +128,7 @@ public:
     int scan_count_ = 0;
   };
 
-  LinearProbingAggregateHashTable(AggregateExpr::Type aggregate_type, int capacity = DEFAULT_CAPACITY)
+  LinearProbingAggregateHashTable(AggrFuncType aggregate_type, int capacity = DEFAULT_CAPACITY)
       : keys_(capacity, EMPTY_KEY), values_(capacity, 0), capacity_(capacity), aggregate_type_(aggregate_type)
   {}
   virtual ~LinearProbingAggregateHashTable() {}
@@ -166,6 +166,6 @@ private:
   std::vector<V>      values_;
   int                 size_     = 0;
   int                 capacity_ = 0;
-  AggregateExpr::Type aggregate_type_;
+  AggrFuncType        aggregate_type_;
 };
 #endif
