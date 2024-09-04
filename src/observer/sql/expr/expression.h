@@ -662,6 +662,7 @@ public:
     }
     return UNDEFINED;
   }
+
   int      value_length() const override { return param_->value_length(); }
 
   std::unique_ptr<Expression>       &get_param() { return param_; }

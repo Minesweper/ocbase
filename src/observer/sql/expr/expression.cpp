@@ -752,19 +752,6 @@ std::string AggregateExpr::get_func_name() const
   return "unknown_aggr_fun";
 }
 
-AttrType AggregateExpr::value_type() const
-{
-  switch (aggregate_type_) {
-    case AggrFuncType::MAX:
-    case AggrFuncType::MIN:
-    case AggrFuncType::SUM: return param_->value_type(); break;
-    case AggrFuncType::AVG: return DOUBLES; break;
-    case AggrFuncType::COUNT: return INTS; break;
-    default: return UNDEFINED; break;
-  }
-  return UNDEFINED;
-}
-
 
 SubQueryExpr::SubQueryExpr(const SelectSqlNode &sql_node) { sql_node_ = std::make_unique<SelectSqlNode>(sql_node); }
 
