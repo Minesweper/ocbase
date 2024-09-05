@@ -138,7 +138,14 @@ struct SelectSqlNode
  */
 struct CalcSqlNode
 {
-  std::vector<std::unique_ptr<Expression>> expressions;  ///< calc clause
+  std::vector<Expression *> expressions;  ///< calc clause
+  ~CalcSqlNode()
+  {
+    for (Expression *expr : expressions) {
+      delete expr;
+    }
+    expressions.clear();
+  }
 };
 
 /**
