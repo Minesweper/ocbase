@@ -63,6 +63,7 @@ public:
   RC update_record(Record &old_record, Record &new_record);
   // TODO refactor
   RC create_index(Trx *trx, const FieldMeta *field_meta, const char *index_name);
+  RC create_index(Trx *trx, bool unique, const std::vector<const FieldMeta *> &field_metas, const char *index_name);
 
   RC get_record_scanner(RecordFileScanner &scanner, Trx *trx, ReadWriteMode mode);
 
@@ -103,9 +104,10 @@ public:
 
 private:
   Db                *db_ = nullptr;
-  string             base_dir_;
+  std::string             base_dir_;
   TableMeta          table_meta_;
   DiskBufferPool    *data_buffer_pool_ = nullptr;  
+  DiskBufferPool    *text_buffer_pool_ = nullptr; 
   RecordFileHandler *record_handler_   = nullptr; 
-  vector<Index *>    indexes_;
+  std::vector<Index *>    indexes_;
 };
