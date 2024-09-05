@@ -890,3 +890,73 @@ static bool exp2value(Expression *exp, Value &value)
   }
   return false;
 }
+
+class ExprListExpr : public Expression
+{
+public:
+  ExprListExpr(std::vector<Expression *> &&exprs)
+  {
+    for (auto expr : exprs) {
+      exprs_.emplace_back(expr);
+    }
+    exprs.clear();
+  }
+  ExprListExpr(std::vector<std::unique_ptr<Expression>> &&exprs) : exprs_(std::move(exprs)) {}
+  virtual ~ExprListExpr() = default;
+
+  void reset() { cur_idx_ = 0; }
+
+  RC get_value(const Tuple &tuple, Value &value) const override
+  {
+    if (cur_idx_ >= exprs_.size()) {
+      return RC::RECORD_EOF;
+    }
+    return exprs_[const_cast<int &>(cur_idx_)++]->get_value(tuple, value);
+  }
+
+  RC try_get_value(Value &value) const override { return RC::UNIMPLENMENT; }
+
+  ExprType type() const override { return ExprType::EXPRLIST; }
+
+  AttrType value_type() const override { return UNDEFINED; }
+
+  void traverse(const std::function<void(Expression *)> &func, const std::function<bool(Expression *)> &filter) override
+  {
+    if (filter(this)) {
+      for (auto &expr : exprs_) {
+        expr->traverse(func, filter);
+      }
+      func(this);
+    }
+  }
+
+  RC traverse_check(const std::function<RC(Expression *)> &check_func) override
+  {
+    RC rc = RC::SUCCESS;
+    for (auto &expr : exprs_) {
+      if (RC::SUCCESS != (rc = expr->traverse_check(check_func))) {
+        return rc;
+      }
+    }
+    if (RC::SUCCESS != (rc = check_func(this))) {
+      return rc;
+    }
+    return RC::SUCCESS;
+  }
+
+  std::unique_ptr<Expression> deep_copy() const override
+  {
+    std::vector<std::unique_ptr<Expression>> new_children;
+    for (auto &expr : exprs_) {
+      new_children.emplace_back(expr->deep_copy());
+    }
+    auto new_expr = std::make_unique<ExprListExpr>(std::move(new_children));
+    new_expr->set_name(name());
+    new_expr->set_alias(alias());
+    return new_expr;
+  }
+
+private:
+  int                                      cur_idx_ = 0;
+  std::vector<std::unique_ptr<Expression>> exprs_;
+};
