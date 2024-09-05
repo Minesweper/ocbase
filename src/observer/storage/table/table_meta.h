@@ -51,6 +51,7 @@ public:
   auto                field_metas() const -> const std::vector<FieldMeta>                *{ return &fields_; }
   auto                trx_fields() const -> std::span<const FieldMeta>;
   const StorageFormat storage_format() const { return storage_format_; }
+  const int           find_field_idx_by_name(const char *field_name) const;
 
   int field_num() const;  // sys field included
   int sys_field_num() const;
