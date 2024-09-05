@@ -15,10 +15,11 @@ See the Mulan PSL v2 for more details. */
 #pragma once
 
 #include <vector>
+#include <memory>
 
 #include "common/rc.h"
-#include "sql/expr/expression.h"
 #include "sql/stmt/stmt.h"
+#include "sql/expr/expression.h"
 
 class Db;
 class Table;
@@ -38,9 +39,12 @@ public:
 public:
   static RC create(CalcSqlNode &calc_sql, Stmt *&stmt)
   {
-    CalcStmt *calc_stmt     = new CalcStmt();
-    calc_stmt->expressions_ = std::move(calc_sql.expressions);
-    stmt                    = calc_stmt;
+    CalcStmt *calc_stmt = new CalcStmt();
+    for (Expression *const expr : calc_sql.expressions) {
+      calc_stmt->expressions_.emplace_back(expr);
+    }
+    calc_sql.expressions.clear();
+    stmt = calc_stmt;
     return RC::SUCCESS;
   }
 
