@@ -906,7 +906,7 @@ public:
 
   void reset() { cur_idx_ = 0; }
 
-  RC get_value(const Tuple &tuple, Value &value) const override
+  RC get_value(const Tuple &tuple, Value &value) override
   {
     if (cur_idx_ >= exprs_.size()) {
       return RC::RECORD_EOF;
