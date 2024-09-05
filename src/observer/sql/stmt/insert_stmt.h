@@ -34,7 +34,11 @@ public:
 public:
   Table       *table() const { return table_; }
   const std::vector<std::vector<Value>> &values() const { return values_; }
-  int          value_amount() const { return value_amount_; }
+  const int    value_amount() const { return value_amount_; }
+
+private:
+  static RC check_full_rows(Table *table, const InsertSqlNode &inserts, std::vector<std::vector<Value>> &rows);
+  static RC check_incomplete_rows(Table *table, const InsertSqlNode &inserts, std::vector<std::vector<Value>> &rows);
 
 private:
   Table       *table_        = nullptr;
