@@ -4550,6 +4550,7 @@ yyreduce:
       (yyval.sql_node)->selection.relations.push_back(*(yyvsp[-5].inner_joins));
       std::reverse((yyval.sql_node)->selection.relations.begin(), (yyval.sql_node)->selection.relations.end());
 
+      (yyval.sql_node)->selection.conditions = nullptr;
       if ((yyvsp[-3].expression) != nullptr) {
         (yyval.sql_node)->selection.conditions = (yyvsp[-3].expression);
       }

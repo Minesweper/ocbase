@@ -126,7 +126,7 @@ struct SelectSqlNode
 {
   std::vector<Expression*> expressions;  ///< 查询的表达式
   std::vector<InnerJoinSqlNode>                 relations;    ///< 查询的表
-  std::vector<ConditionSqlNode>            conditions;   ///< 查询条件，使用AND串联起来多个条件
+  Expression                   *conditions = nullptr;  ///< 查询条件，使用AND串联起来多个条件
   std::vector<Expression *>                     group_by;     ///< group by clause
   std::vector<OrderBySqlNode>                   order_by;
   Expression                                   *having_conditions = 0;
