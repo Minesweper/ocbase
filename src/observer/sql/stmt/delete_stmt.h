@@ -14,13 +14,16 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
-#include "sql/parser/parse_defs.h"
 #include "sql/stmt/stmt.h"
+#include "sql/parser/parse_defs.h"
 
 class Table;
 class FilterStmt;
 
-
+/**
+ * @brief Delete Óï¾ä
+ * @ingroup Statement
+ */
 class DeleteStmt : public Stmt
 {
 public:
