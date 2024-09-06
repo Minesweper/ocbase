@@ -1,10 +1,6 @@
-./benchmark/.vs
 ./benchmark/out
-./deps/common/.vs
 .vscode
-.vs
-./src/.vs
-./src/observer/.vs
+.vs/
 !.vscode/tasks.json
 !.vscode/launch.json
 .VSCodeCounter/*
