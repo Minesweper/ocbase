@@ -331,7 +331,8 @@ public:
   RC close_file(const char *file_name);
 
   RC flush_page(Frame &frame);
-
+  static void set_instance(BufferPoolManager *bpm);  
+  static BufferPoolManager &instance();
   BPFrameManager    &get_frame_manager() { return frame_manager_; }
   DoubleWriteBuffer *get_dblwr_buffer() { return dblwr_buffer_.get(); }
 
