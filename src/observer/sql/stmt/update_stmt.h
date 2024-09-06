@@ -31,7 +31,7 @@ public:
   ~UpdateStmt() override;
 
 public:
-  static RC create(Db *db, UpdateSqlNode &update_sql, Stmt *&stmt)
+  static RC create(Db *db, UpdateSqlNode &update, Stmt *&stmt)
   {
     const char *table_name = update.relation_name.c_str();
     if (nullptr == db || nullptr == table_name) {
