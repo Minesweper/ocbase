@@ -204,7 +204,7 @@ RC SelectStmt::create(
       FieldExpr *field_expr = static_cast<FieldExpr *>(expr);
       return field_expr->check_field(table_map, tables, default_table, table_alias_map);
     }
-    if (expr->type() == ExprType::AGGRFUNCTION) {
+    if (expr->type() == ExprType::AGGREGATION) {
       has_aggr_func_expr = true;
     }
     return RC::SUCCESS;
@@ -282,7 +282,7 @@ RC SelectStmt::create(
                                                                     // field_expr,用来判断语句是否合法
     // 用于从 project exprs 中提取所有 aggr func exprs. e.g. min(c1 + 1) + 1
     auto collect_aggr_exprs = [&aggr_exprs](Expression *expr) {
-      if (expr->type() == ExprType::AGGRFUNCTION) {
+      if (expr->type() == ExprType::AGGREGATION) {
         aggr_exprs.emplace_back(static_cast<AggrFuncExpr *>(static_cast<AggrFuncExpr *>(expr)->deep_copy().release()));
       }
     };
@@ -304,11 +304,11 @@ RC SelectStmt::create(
       project->traverse(collect_aggr_exprs);   // 提取所有 aggexpr
       project->traverse(collect_field_exprs);  // 提取 select clause 中的所有 field_expr,传递给groupby stmt
       // project->traverse(collect_field_exprs, [](const Expression* expr) { return expr->type() !=
-      // ExprType::AGGRFUNCTION; });
+      // ExprType::AGGREGATION; });
 
       // 提取所有不在 aggexpr 中的 field_expr，用于语义检查
       project->traverse(
-          collect_exprs_not_aggexpr, [](const Expression *expr) { return expr->type() != ExprType::AGGRFUNCTION; });
+          collect_exprs_not_aggexpr, [](const Expression *expr) { return expr->type() != ExprType::AGGREGATION; });
     }
     // 针对 having 后的表达式，需要做和上面相同的三个提取过程
     //  select id, max(score) from t_group_by group by id having count(*)>5;
@@ -323,9 +323,9 @@ RC SelectStmt::create(
       filter_expr->traverse(collect_aggr_exprs);   // 提取所有 aggexpr
       filter_expr->traverse(collect_field_exprs);  // 提取 select clause 中的所有 field_expr,传递给groupby stmt
       // project->traverse(collect_field_exprs, [](const Expression* expr) { return expr->type() !=
-      // ExprType::AGGRFUNCTION; }); 提取所有不在 aggexpr 中的 field_expr，用于语义检查
+      // ExprType::AGGREGATION; }); 提取所有不在 aggexpr 中的 field_expr，用于语义检查
       filter_expr->traverse(
-          collect_exprs_not_aggexpr, [](const Expression *expr) { return expr->type() != ExprType::AGGRFUNCTION; });
+          collect_exprs_not_aggexpr, [](const Expression *expr) { return expr->type() != ExprType::AGGREGATION; });
       select_sql.having_conditions = nullptr;
     }
 
@@ -364,7 +364,7 @@ RC SelectStmt::create(
 
       // TODO 没有检查 having 和 order by 子句中的表达式
       for (auto &project : projects) {
-        if (project->type() != ExprType::AGGRFUNCTION) {
+        if (project->type() != ExprType::AGGREGATION) {
           if (!check_expr_in_groupby_exprs(project)) {
             LOG_WARN("expr not in groupby_exprs");
             return RC::INVALID_ARGUMENT;
@@ -400,7 +400,7 @@ RC SelectStmt::create(
     std::vector<std::unique_ptr<Expression>> expr_for_orderby;
     // 用于从 project exprs 中提取所有 aggr func exprs. e.g. min(c1 + 1) + 1
     auto collect_aggr_exprs = [&expr_for_orderby](Expression *expr) {
-      if (expr->type() == ExprType::AGGRFUNCTION) {
+      if (expr->type() == ExprType::AGGREGATION) {
         expr_for_orderby.emplace_back(
             static_cast<AggrFuncExpr *>(static_cast<AggrFuncExpr *>(expr)->deep_copy().release()));
       }
@@ -415,7 +415,7 @@ RC SelectStmt::create(
     for (auto &project : projects) {
       project->traverse(collect_aggr_exprs);
       project->traverse(
-          collect_field_exprs, [](const Expression *expr) { return expr->type() != ExprType::AGGRFUNCTION; });
+          collect_field_exprs, [](const Expression *expr) { return expr->type() != ExprType::AGGREGATION; });
     }
     // TODO 检查应该放到 create 里面去检查
     // do check field
