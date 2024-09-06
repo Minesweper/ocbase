@@ -131,6 +131,40 @@ RC RecordPageHandler::init(DiskBufferPool &buffer_pool, LogHandler &log_handler,
   return ret;
 }
 
+RC RecordPageHandler::init(DiskBufferPool &buffer_pool, PageNum page_num, ReadWriteMode mode)
+{
+  if (disk_buffer_pool_ != nullptr) {
+    if (frame_->page_num() == page_num) {
+      LOG_WARN("Disk buffer pool has been opened for page_num %d.", page_num);
+      return RC::RECORD_OPENNED;
+    } else {
+      cleanup();
+    }
+  }
+
+  RC ret = RC::SUCCESS;
+  if ((ret = buffer_pool.get_this_page(page_num, &frame_)) != RC::SUCCESS) {
+    LOG_ERROR("Failed to get page handle from disk buffer pool. ret=%d:%s", ret, strrc(ret));
+    return ret;
+  }
+
+  char *data = frame_->data();
+
+  if (mode == ReadWriteMode::READ_ONLY) {
+    frame_->read_latch();
+  } else {
+    frame_->write_latch();
+  }
+  disk_buffer_pool_ = &buffer_pool;
+
+  rw_mode_     = mode;
+  page_header_ = (PageHeader *)(data);
+  bitmap_      = data + PAGE_HEADER_SIZE;
+
+  LOG_TRACE("Successfully init page_num %d.", page_num);
+  return ret;
+}
+
 RC RecordPageHandler::recover_init(DiskBufferPool &buffer_pool, PageNum page_num)
 {
   if (disk_buffer_pool_ != nullptr) {
@@ -564,7 +598,7 @@ RC RecordFileHandler::init_free_pages()
 
   BufferPoolIterator bp_iterator;
   bp_iterator.init(*disk_buffer_pool_, 1);
-  unique_ptr<RecordPageHandler> record_page_handler(RecordPageHandler::create(storage_format_));
+  std::unique_ptr<RecordPageHandler> record_page_handler(RecordPageHandler::create(storage_format_));
   PageNum                       current_page_num = 0;
 
   while (bp_iterator.has_next()) {
@@ -590,7 +624,7 @@ RC RecordFileHandler::update_record(Record *rec, const char* data)
   RC ret = RC::SUCCESS;
   if (storage_format_ == StorageFormat::ROW_FORMAT) {
     RowRecordPageHandler record_page_handler;
-    ret = record_page_handler.init(*disk_buffer_pool_, log_handler_, rec->rid().page_num, ReadWriteMode::READ_ONLY);
+    ret = record_page_handler.init(*disk_buffer_pool_, *log_handler_, rec->rid().page_num, ReadWriteMode::READ_ONLY);
     if (ret != RC::SUCCESS) {
       LOG_WARN("failed to init record page handler. page num=%d, rc=%s", rec->rid().page_num, strrc(ret));
       return ret;
@@ -599,7 +633,7 @@ RC RecordFileHandler::update_record(Record *rec, const char* data)
   }
   else if (storage_format_ == StorageFormat::PAX_FORMAT) {
     PaxRecordPageHandler record_page_handler;
-    ret = record_page_handler.init(*disk_buffer_pool_, log_handler_, rec->rid().page_num, ReadWriteMode::READ_ONLY);
+    ret = record_page_handler.init(*disk_buffer_pool_, *log_handler_, rec->rid().page_num, ReadWriteMode::READ_ONLY);
     if (ret != RC::SUCCESS) {
       LOG_WARN("failed to init record page handler. page num=%d, rc=%s", rec->rid().page_num, strrc(ret));
       return ret;

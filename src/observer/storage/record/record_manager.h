@@ -139,6 +139,8 @@ public:
    */
   RC init(DiskBufferPool &buffer_pool, LogHandler &log_handler, PageNum page_num, ReadWriteMode mode);
 
+  RC init(DiskBufferPool &buffer_pool, PageNum page_num, ReadWriteMode mode);
+
   /**
    * @brief 数据库恢复时，与普通的运行场景有所不同，不做任何并发操作，也不需要加锁
    *
