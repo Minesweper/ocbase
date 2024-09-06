@@ -1,5 +1,6 @@
 ./benchmark/.vs
 ./benchmark/out
+./deps/common/.vs
 .vscode
 .vs
 ./src/.vs
