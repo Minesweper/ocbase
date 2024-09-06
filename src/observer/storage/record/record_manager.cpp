@@ -419,6 +419,8 @@ RC RowRecordPageHandler::update_record(const RID &rid, const char *data)
   }
 }
 
+RC RowRecordPageHandler::update_record(Record *rid, const char *data) { return update_record(rid->rid(), data); }
+
 RC RowRecordPageHandler::get_record(const RID &rid, Record &record)
 {
   if (rid.slot_num >= page_header_->record_capacity) {
@@ -557,6 +559,9 @@ int PaxRecordPageHandler::get_field_len(int col_id)
   }
 }
 
+RC PaxRecordPageHandler::update_record(const RID &rid, const char *data) { return RC::UNIMPLENMENT; }
+
+RC PaxRecordPageHandler::update_record(Record *rid, const char *data) { return update_record(rid->rid(), data); }
 ////////////////////////////////////////////////////////////////////////////////
 
 RecordFileHandler::~RecordFileHandler() { this->close(); }

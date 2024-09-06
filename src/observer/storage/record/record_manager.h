@@ -205,6 +205,7 @@ public:
    */
   virtual RC update_record(const RID &rid, const char *data) { return RC::UNIMPLENMENT; }
 
+  virtual RC update_record(Record *rid, const char *data) { return RC::UNIMPLENMENT; }
   /**
    * @brief 获取指定位置的记录数据
    *
@@ -293,6 +294,7 @@ public:
 
   virtual RC update_record(const RID &rid, const char *data) override;
 
+  virtual RC update_record(Record *rid, const char *data) override;
   /**
    * @brief 获取指定位置的记录数据
    *
@@ -328,6 +330,9 @@ public:
   virtual RC insert_record(const char *data, RID *rid) override;
 
   virtual RC delete_record(const RID *rid) override;
+
+  virtual RC update_record(const RID &rid, const char *data) override;
+  virtual RC update_record(Record *rid, const char *data) override;
 
   /**
    * @brief 获取指定位置的记录数据
