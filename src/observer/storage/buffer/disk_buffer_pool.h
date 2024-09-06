@@ -267,6 +267,9 @@ public:
 
   RC redo_allocate_page(LSN lsn, PageNum page_num);
   RC redo_deallocate_page(LSN lsn, PageNum page_num);
+  RC append_data(int64_t &offset, int64_t length, const char *data);
+
+  RC get_data(int64_t offset, int64_t length, char *data);
 
 public:
   int32_t id() const { return buffer_pool_id_; }
