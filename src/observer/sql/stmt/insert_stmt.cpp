@@ -63,7 +63,7 @@ RC InsertStmt::check_full_rows(Table *table, const InsertSqlNode &inserts, std::
   const int        field_num     = table_meta.field_num() - table_meta.sys_field_num();
   const int        sys_field_num = table_meta.sys_field_num();
 
-  // ¼ì²éÃ¿Ò»ĞĞÊı¾İ
+  // æ£€æŸ¥æ¯ä¸€è¡Œæ•°æ®
   for (const std::vector<Value> &values : inserts.values) {
     const int value_num = static_cast<int>(values.size());
     if (field_num != value_num) {
@@ -98,7 +98,7 @@ RC InsertStmt::check_full_rows(Table *table, const InsertSqlNode &inserts, std::
         if (values[i].length() > field_meta->len()) {
           return RC::INVALID_ARGUMENT;
         }
-        // ½«²»È·¶¨³¤¶ÈµÄ char ¸ÄÎª¹Ì¶¨³¤¶ÈµÄ char
+        // å°†ä¸ç¡®å®šé•¿åº¦çš„ char æ”¹ä¸ºå›ºå®šé•¿åº¦çš„ char
         char *char_data = (char *)malloc(field_meta->len());
         memset(char_data, 0, field_meta->len());
         memcpy(char_data, values[i].data(), values[i].length());
@@ -122,10 +122,10 @@ RC InsertStmt::check_incomplete_rows(Table *table, const InsertSqlNode &inserts,
   int                             col_name_num  = inserts.attrs_name.size();
   const std::vector<std::string> &col_names     = inserts.attrs_name;
 
-  // ¼ÇÂ¼ĞĞÖĞÃ¿Ò»ÁĞÊÇvaluesÖĞµÚ¼¸¸ö£¬²»´æÔÚµÄÎª-1
+  // è®°å½•è¡Œä¸­æ¯ä¸€åˆ—æ˜¯valuesä¸­ç¬¬å‡ ä¸ªï¼Œä¸å­˜åœ¨çš„ä¸º-1
   std::vector<int> col_idx(field_num, -1);
 
-  // È·ÈÏÃ¿¸öÁĞÃû³Æ¶¼ÊÇÕıÈ·µÄ£¬ÒÔ¼°È·ÈÏÁĞÔÚĞĞÖĞÎ»ÖÃ
+  // ç¡®è®¤æ¯ä¸ªåˆ—åç§°éƒ½æ˜¯æ­£ç¡®çš„ï¼Œä»¥åŠç¡®è®¤åˆ—åœ¨è¡Œä¸­ä½ç½®
   for (int i = 0; i < col_names.size(); i++) {
     const std::string &col_name  = col_names[i];
     int                field_idx = table->table_meta().find_field_idx_by_name(col_name.c_str());
@@ -136,7 +136,7 @@ RC InsertStmt::check_incomplete_rows(Table *table, const InsertSqlNode &inserts,
     col_idx[field_idx - sys_field_num] = i;
   }
 
-  // ¼ì²éÃ¿Ò»ĞĞÊı¾İ
+  // æ£€æŸ¥æ¯ä¸€è¡Œæ•°æ®
   for (const std::vector<Value> &values : inserts.values) {
     const int value_num = static_cast<int>(values.size());
     if (value_num != inserts.attrs_name.size()) {
@@ -149,15 +149,15 @@ RC InsertStmt::check_incomplete_rows(Table *table, const InsertSqlNode &inserts,
     for (int i = 0; i < field_num; i++) {
       const FieldMeta *field_meta = table_meta.field(i + sys_field_num);
       if (-1 == col_idx[i]) {
-        // ¸ÃÁĞÎ´Ö¸¶¨
+        // è¯¥åˆ—æœªæŒ‡å®š
         if (!field_meta->nullable()) {
           LOG_WARN("field not allow NULL:%s", field_meta->name());
           ;
           return RC::INVALID_ARGUMENT;
         }
       } else {
-        // Ö¸¶¨ÁËÖµµÄÁĞ£¬ĞèÒª¼ì²é
-        int            name_idx   = col_idx[i];  // ¸ÃÁĞµÄÖµÊÇµÚ¼¸¸ö
+        // æŒ‡å®šäº†å€¼çš„åˆ—ï¼Œéœ€è¦æ£€æŸ¥
+        int            name_idx   = col_idx[i];  // è¯¥åˆ—çš„å€¼æ˜¯ç¬¬å‡ ä¸ª
         const AttrType field_type = field_meta->type();
         const AttrType value_type = values[name_idx].attr_type();
 
@@ -183,7 +183,7 @@ RC InsertStmt::check_incomplete_rows(Table *table, const InsertSqlNode &inserts,
           if (values[name_idx].length() > field_meta->len()) {
             return RC::INVALID_ARGUMENT;
           }
-          // ½«²»È·¶¨³¤¶ÈµÄ char ¸ÄÎª¹Ì¶¨³¤¶ÈµÄ char
+          // å°†ä¸ç¡®å®šé•¿åº¦çš„ char æ”¹ä¸ºå›ºå®šé•¿åº¦çš„ char
           char *char_data = (char *)malloc(field_meta->len());
           memset(char_data, 0, field_meta->len());
           memcpy(char_data, values[name_idx].data(), values[name_idx].length());

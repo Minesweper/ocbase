@@ -21,7 +21,7 @@ class Table;
 class FilterStmt;
 
 /**
- * @brief Delete Óï¾ä
+ * @brief Delete Ã‹Â´Â¥Ãµ
  * @ingroup Statement
  */
 class DeleteStmt : public Stmt
