@@ -39,6 +39,6 @@ private:
 
 #define SCOPE_UNIQUE_NAME(B, C) _SCOPE_UNIQUE_NAME(B, C)
 
-#define SCOPE_UNIQUE_NAME2(B) SCOPE_UNIQUE_NAME(B, __COUNTER__)
+#define SCOPE_UNIQUE_NAMEE(B) SCOPE_UNIQUE_NAME(B, __COUNTER__)
 
-#define DEFER(code) common::DeferHelper SCOPE_UNIQUE_NAME(defer_helper_)([&]() { code; })
+#define DEFER(code) common::DeferHelper SCOPE_UNIQUE_NAMEE(defer_helper_)([&]() { code; })
