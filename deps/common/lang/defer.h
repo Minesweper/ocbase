@@ -37,12 +37,8 @@ private:
 
 #define _SCOPE_UNIQUE_NAME(B, C) B##C
 
-#define SCOPE_UNIQUE_NAME(B) _SCOPE_UNIQUE_NAME(B, __LINE__)
+#define SCOPE_UNIQUE_NAME(B, C) _SCOPE_UNIQUE_NAME(B, C)
 
-//#define DEFER(...) common::DeferHelper SCOPE_UNIQUE_NAME(defer_helper_)([&]() { __VA_ARGS__; })
+#define SCOPE_UNIQUE_NAME2(B) SCOPE_UNIQUE_NAME(B, __COUNTER__)
 
-#define AA(B, C) B##C
-
-#define BB(B, C) AA(B, C)
-
-#define DEFER(callback) common::DeferHelper BB(defer_helper_, __LINE__)(callback)
+#define DEFER(code) common::DeferHelper SCOPE_UNIQUE_NAME(defer_helper_)([&]() { code; })
