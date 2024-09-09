@@ -628,7 +628,7 @@ RC Table::update_record(Record &record, const std::vector<std::string> &attr_nam
 
   char *old_data = record.data();                        // old_data不能释放，其指向的是frame中的内存
   char *data     = new char[table_meta_.record_size()];  // new_record->data
-  DEFER([&]() {
+  DEFERR([&]() {
     delete[] data;
     data = nullptr;
     record.set_data(old_data);
@@ -639,6 +639,7 @@ RC Table::update_record(Record &record, const std::vector<std::string> &attr_nam
   for (size_t c_idx = 0; c_idx < attr_names.size(); c_idx++) {
     Value             *value     = values[c_idx];
     const std::string &attr_name = attr_names[c_idx];
+
 
     for (int i = 0; i < user_field_num; ++i) {
       const FieldMeta *field_meta = table_meta_.field(i + sys_field_num);
@@ -668,6 +669,7 @@ RC Table::update_record(Record &record, const std::vector<std::string> &attr_nam
       return RC::SCHEMA_FIELD_NOT_EXIST;
     }
 
+    // 写入新的值
     const FieldMeta *null_field = table_meta_.null_field();
     common::Bitmap   new_null_bitmap(data + null_field->offset(), table_meta_.field_num());
     if (value->is_null()) {
@@ -677,7 +679,7 @@ RC Table::update_record(Record &record, const std::vector<std::string> &attr_nam
       memcpy(data + field_offset, value->data(), field_length);
     }
   }
-  record.set_data(data); 
+  record.set_data(data);  // 谁来管理old_data呢？
 
   rc = delete_entry_of_indexes(old_data, record.rid(), false);
   if (rc != RC::SUCCESS) {
