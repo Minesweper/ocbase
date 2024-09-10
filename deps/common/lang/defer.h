@@ -15,7 +15,6 @@ See the Mulan PSL v2 for more details. */
 #pragma once
 
 #include "common/lang/functional.h"
-#include <functional>
 
 namespace common {
 
@@ -40,4 +39,4 @@ private:
 
 #define BB(B, C) AA(B, C)
 
-#define DEFER(callback) common::DeferHelper BB(defer_helper_, __LINE__)(callback)
+#define DEFER(callback) common::DeferHelper BB(defer_helper_, __COUNTER__)(callback)
