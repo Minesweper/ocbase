@@ -203,12 +203,13 @@ RC RecordLogReplayer::replay(const LogEntry &entry)
     return rc;
   }
 
-  DEFER([&]() { buffer_pool->unpin_page(frame); });
+  //DEFER([&]() { buffer_pool->unpin_page(frame); });
   const LSN frame_lsn = frame->lsn();
 
   if (frame_lsn >= entry.lsn()) {
     LOG_TRACE("page %d has been initialized, skip replaying record log. frame lsn %d, log lsn %d", 
               log_header->page_num, frame_lsn, entry.lsn());
+    buffer_pool->unpin_page(frame);
     return RC::SUCCESS;
   }
 
@@ -227,16 +228,19 @@ RC RecordLogReplayer::replay(const LogEntry &entry)
     } break;
     default: {
       LOG_WARN("unknown record operation type: %d", log_header->operation_type);
+      buffer_pool->unpin_page(frame);
       return RC::INVALID_ARGUMENT;
     }
   }
 
   if (OB_FAIL(rc)) {
     LOG_WARN("fail to replay record log. log header: %s, rc=%s", log_header->to_string().c_str(), strrc(rc));
+    buffer_pool->unpin_page(frame);
     return rc;
   }
 
   frame->set_lsn(entry.lsn());
+  buffer_pool->unpin_page(frame);
   return RC::SUCCESS;
 }
 
