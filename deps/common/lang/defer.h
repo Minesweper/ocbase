@@ -14,14 +14,14 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
-#include "common/lang/functional.h"
+#include <functional>
 
 namespace common {
 
 class DeferHelper
 {
 public:
-  DeferHelper(const function<void()> defer) : defer_(std::move(defer)) {}
+  DeferHelper(const std::function<void()> defer) : defer_(std::move(defer)) {}
 
   ~DeferHelper()
   {
@@ -31,7 +31,7 @@ public:
   }
 
 private:
-  const function<void()> defer_;
+  const std::function<void()> defer_;
 };
 }  // namespace common
 
@@ -39,4 +39,4 @@ private:
 
 #define BB(B, C) AA(B, C)
 
-#define DEFER(callback) common::DeferHelper BB(defer_helper_, __COUNTER__)(callback)
+#define DEFER(callback) common::DeferHelper BB(defer_helper_, __LINE__)(callback)
