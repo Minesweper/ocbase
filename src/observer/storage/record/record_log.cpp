@@ -203,7 +203,7 @@ RC RecordLogReplayer::replay(const LogEntry &entry)
     return rc;
   }
 
-  DEFER([&]() { buffer_pool->unpin_page(frame) });
+  DEFER([&]() { buffer_pool->unpin_page(frame); });
   const LSN frame_lsn = frame->lsn();
 
   if (frame_lsn >= entry.lsn()) {
