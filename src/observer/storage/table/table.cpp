@@ -30,7 +30,7 @@ See the Mulan PSL v2 for more details. */
 #include "storage/record/record_manager.h"
 #include "storage/table/table.h"
 #include "storage/trx/trx.h"
-#include "common/lang/defer.h"
+//#include "common/lang/defer.h"
 
 Table::~Table()
 {
@@ -628,11 +628,6 @@ RC Table::update_record(Record &record, const std::vector<std::string> &attr_nam
 
   char *old_data = record.data();                        // old_data不能释放，其指向的是frame中的内存
   char *data     = new char[table_meta_.record_size()];  // new_record->data
-  DEFERR([&]() {
-    delete[] data;
-    data = nullptr;
-    record.set_data(old_data);
-  });
 
   memcpy(data, old_data, table_meta_.record_size());
 
