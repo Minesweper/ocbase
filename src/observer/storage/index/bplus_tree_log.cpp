@@ -186,7 +186,7 @@ RC BplusTreeLogger::__redo(LSN lsn, BplusTreeMiniTransaction &mtr, BplusTreeHand
 {
   need_log_ = false;
 
-  DEFER(need_log_ = true);
+  DEFER([&]() { need_log_ = true;});
 
   RC rc = RC::SUCCESS;
   vector<Frame *> frames;
