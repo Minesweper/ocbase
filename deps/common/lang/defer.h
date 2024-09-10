@@ -15,6 +15,7 @@ See the Mulan PSL v2 for more details. */
 #pragma once
 
 #include "common/lang/functional.h"
+#include <functional>
 
 namespace common {
 
@@ -34,6 +35,21 @@ private:
   const function<void()> defer_;
 };
 
+class DeferHelperr
+{
+public:
+  DeferHelperr(const std::function<void()> defer) : defer_(std::move(defer)) {}
+
+  ~DeferHelperr()
+  {
+    if (defer_) {
+      defer_();
+    }
+  }
+
+private:
+  const std::function<void()> defer_;
+};
 }  // namespace common
 
 #define _SCOPE_UNIQUE_NAME(B, C) B##C
@@ -46,4 +62,4 @@ private:
 
 #define BB(B, C) AA(B, C)
 
-#define DEFERR(callback) common::DeferHelper BB(defer_helper_, __LINE__)(callback)
+#define DEFERR(callback) common::DeferHelperr BB(defer_helper_, __LINE__)(callback)
