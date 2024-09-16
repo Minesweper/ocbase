@@ -275,16 +275,16 @@ RC ComparisonExpr::get_value(const Tuple &tuple, Value &value)
   SubQueryExpr *left_subquery_expr  = nullptr;
   SubQueryExpr *right_subquery_expr = nullptr;
 
-  DEFER(
+  DEFER([&left_subquery_expr]() {
     if (nullptr != left_subquery_expr) {
       left_subquery_expr->close();
     }
-  );
-  DEFER(
+  });
+  DEFER([&right_subquery_expr]() {
     if (nullptr != right_subquery_expr) {
       right_subquery_expr->close();
     }
-  );
+  });
 
   auto if_subquery_open = [](const std::unique_ptr<Expression> &expr) {
     SubQueryExpr *sqexp = nullptr;
