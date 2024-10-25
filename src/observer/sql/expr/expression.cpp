@@ -272,87 +272,20 @@ RC ComparisonExpr::get_value(const Tuple &tuple, Value &value)
   Value left_value;
   Value right_value;
 
-  SubQueryExpr *left_subquery_expr  = nullptr;
-  SubQueryExpr *right_subquery_expr = nullptr;
-
-  DEFER(
-    if (nullptr != left_subquery_expr) {
-      left_subquery_expr->close();
-    }
-  );
-  DEFER(
-    if (nullptr != right_subquery_expr) {
-      right_subquery_expr->close();
-    }
-  );
-
-  auto if_subquery_open = [](const std::unique_ptr<Expression> &expr) {
-    SubQueryExpr *sqexp = nullptr;
-    if (expr->type() == ExprType::SUBQUERY) {
-      sqexp = static_cast<SubQueryExpr *>(expr.get());
-      sqexp->open(nullptr);  // 暂时先 nullptr
-    }
-    return sqexp;
-  };
-  left_subquery_expr  = if_subquery_open(left_);
-  right_subquery_expr = if_subquery_open(right_);
-
-  RC rc = RC::SUCCESS;
-  if (comp_ == EXISTS_OP || comp_ == NOT_EXISTS_OP) {
-    rc = right_->get_value(tuple, right_value);
-    value.set_boolean(comp_ == EXISTS_OP ? rc == RC::SUCCESS : rc == RC::RECORD_EOF);
-    return RC::RECORD_EOF == rc ? RC::SUCCESS : rc;
-  }
-
-  auto get_value = [&tuple](const std::unique_ptr<Expression> &expr, Value &value) {
-    RC rc = expr->get_value(tuple, value);
-    if (expr->type() == ExprType::SUBQUERY && RC::RECORD_EOF == rc) {
-      value.set_null();
-      rc = RC::SUCCESS;
-    }
-    return rc;
-  };
-  rc = get_value(left_, left_value);
+  RC rc = left_->get_value(tuple, left_value);
   if (rc != RC::SUCCESS) {
     LOG_WARN("failed to get value of left expression. rc=%s", strrc(rc));
     return rc;
   }
-  if (left_subquery_expr && left_subquery_expr->has_more_row(tuple)) {
-    return RC::INVALID_ARGUMENT;
-  }
-
-  if (comp_ == IN_OP || comp_ == NOT_IN_OP) {
-    if (left_value.is_null()) {
-      value.set_boolean(false);
-      return RC::SUCCESS;
-    }
-    if (right_->type() == ExprType::EXPRLIST) {
-      static_cast<ExprListExpr *>(right_.get())->reset();
-    }
-    bool res      = false;  // 有一样的值
-    bool has_null = false;  // 有一个 null
-    while (RC::SUCCESS == (rc = right_->get_value(tuple, right_value))) {
-      if (right_value.is_null()) {
-        has_null = true;
-      } else if (left_value.compare(right_value) == 0) {
-        res = true;
-      }
-    }
-    value.set_boolean(comp_ == IN_OP ? res : (has_null ? false : !res));
-    return rc == RC::RECORD_EOF ? RC::SUCCESS : rc;
-  }
-
-  rc = get_value(right_, right_value);
+  rc = right_->get_value(tuple, right_value);
   if (rc != RC::SUCCESS) {
     LOG_WARN("failed to get value of right expression. rc=%s", strrc(rc));
     return rc;
   }
-  if (right_subquery_expr && right_subquery_expr->has_more_row(tuple)) {
-    return RC::INVALID_ARGUMENT;
-  }
 
   bool bool_value = false;
-  rc              = compare_value(left_value, right_value, bool_value);
+
+  rc = compare_value(left_value, right_value, bool_value);
   if (rc == RC::SUCCESS) {
     value.set_boolean(bool_value);
   }
