@@ -23,8 +23,8 @@ public:
   Bitmap(char *bitmap, int size);
 
   void init(char *bitmap, int size);
-  bool get_bit(int index) const;
   bool get_bit(int index);
+  bool get_bit(int index) const;
   void set_bit(int index);
   void clear_bit(int index);
 

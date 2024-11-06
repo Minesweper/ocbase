@@ -139,13 +139,7 @@ struct SelectSqlNode
 struct CalcSqlNode
 {
   std::vector<Expression *> expressions;  ///< calc clause
-  ~CalcSqlNode()
-  {
-    for (Expression *expr : expressions) {
-      delete expr;
-    }
-    expressions.clear();
-  }
+  ~CalcSqlNode();
 };
 
 /**

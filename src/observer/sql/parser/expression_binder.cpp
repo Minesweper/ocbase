@@ -383,6 +383,7 @@ RC check_aggregate_expression(AggregateExpr &expression)
     case AggrFuncType::MIN: {
       // 任何类型都支持
     } break;
+    default:break;
   }
 
   // 子表达式中不能再包含聚合表达式

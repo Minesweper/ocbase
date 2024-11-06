@@ -22,6 +22,8 @@ See the Mulan PSL v2 for more details. */
 
 const char *ATTR_TYPE_NAME[] = {
     "undefined", "chars", "ints", "floats", "doubles", "dates", "long", "texts", "nulls", "booleans"};
+    
+int ATTR_TYPE_LENGTH[] = {-1, 4, 4, 4, 8, 4, 8, MAX_TEXT_LENGTH, 4, -1};
 
 const char *attr_type_to_string(AttrType type)
 {
@@ -161,6 +163,7 @@ void Value::set_value(const Value &value)
     case UNDEFINED: {
       ASSERT(false, "got an invalid value type");
     } break;
+    default: break;
   }
 }
 

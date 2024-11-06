@@ -455,6 +455,8 @@ public:
    */
   RC close_scan();
 
+  bool has_next();
+  
   /**
    * @brief 获取下一条记录
    *

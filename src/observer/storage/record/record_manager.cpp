@@ -645,6 +645,7 @@ RC RecordFileHandler::update_record(Record *rec, const char* data)
     }
     return record_page_handler.update_record(rec, data);
   }
+  return RC::SUCCESS;
 }
 
 RC RecordFileHandler::insert_record(const char *data, int record_size, RID *rid)
@@ -940,6 +941,8 @@ RC RecordFileScanner::close_scan()
 
   return RC::SUCCESS;
 }
+
+bool RecordFileScanner::has_next() { return next_record_.rid().slot_num != -1; }
 
 RC RecordFileScanner::next(Record &record)
 {

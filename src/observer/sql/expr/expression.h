@@ -56,6 +56,7 @@ enum class ExprType
   SYSFUNCTION,
 };
 
+bool exp2value(Expression *exp, Value &value);
 /**
  * @brief 表达式的抽象描述
  * @ingroup Expression
@@ -870,26 +871,7 @@ private:
   std::vector<std::unique_ptr<Expression>> params_;
 };
 
-static bool exp2value(Expression *exp, Value &value)
-{
-  if (exp->type() == ExprType::VALUE) {
-    ValueExpr *tmp = static_cast<ValueExpr *>(exp);
-    value          = tmp->get_value();
-    return true;
-  }
-  if (exp->type() == ExprType::ARITHMETIC) {
-    ArithmeticExpr *tmp = static_cast<ArithmeticExpr *>(exp);
-    if (tmp->arithmetic_type() != ArithmeticExpr::Type::NEGATIVE && tmp->left()->type() != ExprType::VALUE) {
-      return false;
-    }
-    ValueExpr *lhs = static_cast<ValueExpr *>(tmp->left().get());
-    if (!lhs->get_neg(value)) {
-      return false;
-    }
-    return true;
-  }
-  return false;
-}
+
 
 class ExprListExpr : public Expression
 {

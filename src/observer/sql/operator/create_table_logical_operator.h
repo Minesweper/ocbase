@@ -1,3 +1,5 @@
+#pragma once
+
 #include "sql/operator/logical_operator.h"
 
 class Db;

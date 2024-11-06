@@ -56,36 +56,73 @@ enum class BplusTreeOperationType
 class AttrComparator
 {
 public:
-  void init(AttrType type, int length)
-  {
-    attr_type_   = type;
-    attr_length_ = length;
-  }
-
-  int attr_length() const { return attr_length_; }
-
-  int operator()(const char *v1, const char *v2) const
-  {
-    switch (attr_type_) {
-      case AttrType::INTS: {
-        return common::compare_int((void *)v1, (void *)v2);
-      } break;
-      case AttrType::FLOATS: {
-        return common::compare_float((void *)v1, (void *)v2);
-      }
-      case AttrType::CHARS: {
-        return common::compare_string((void *)v1, attr_length_, (void *)v2, attr_length_);
-      }
-      default: {
-        ASSERT(false, "unknown attr type. %d", attr_type_);
-        return 0;
-      }
+  void init(int attr_num, int *field_id, AttrType *type, int *length){
+    for (int i = 0; i < attr_num; i++) {
+      field_id_.emplace_back(field_id[i]);
+      attr_type_.emplace_back(type[i]);
+      attr_length_.emplace_back(length[i]);
     }
   }
 
+  int attr_length() const {
+    int l = 0;
+    for (size_t i = 0; i < attr_length_.size(); i++) {
+      l += attr_length_[i];
+    }
+    return l;
+  }
+  
+  int operator()(const char *v1, const char *v2) const
+  {
+    int cmp = 0;
+    
+    int offset = attr_length_[0];
+    common::Bitmap l_map(const_cast<char*>(v1), attr_length_[0] * 8);
+    common::Bitmap r_map(const_cast<char*>(v2), attr_length_[0] * 8);
+    for (size_t i = 1; i < attr_type_.size(); i++) {
+      
+      if (l_map.get_bit(field_id_[i]) == true || r_map.get_bit(field_id_[i]) == true) {
+        return -1;
+      }
+      switch (attr_type_[i]) {
+        case INTS:
+        case DATES: {
+          if (0 == (cmp = common::compare_int((void *)(v1 + offset), (void *)(v2 + offset)))) {
+            offset += attr_length_[i];
+          } else {
+            return cmp;
+          }
+          break;
+        } 
+        case FLOATS: {
+          if (0 == (cmp = common::compare_float((void *)(v1 + offset), (void *)(v2 + offset)))) {
+            offset += attr_length_[i];
+          } else {
+            return cmp;
+          }
+          break;
+        }
+        case CHARS: {
+          if (0 == (cmp = common::compare_string((void *)(v1 + offset), attr_length_[i], (void *)(v2 + offset), attr_length_[i]))) {
+            offset += attr_length_[i];
+          } else {
+            return cmp;
+          }
+          break;
+        }
+        default: {
+          ASSERT(false, "unknown attr type. %d", attr_type_);
+          return 0;
+        }
+      }
+    }
+    return cmp;
+  }
+
 private:
-  AttrType attr_type_;
-  int      attr_length_;
+  std::vector<AttrType> attr_type_;
+  std::vector<int> attr_length_;
+  std::vector<int> field_id_;
 };
 
 /**
@@ -96,7 +133,13 @@ private:
 class KeyComparator
 {
 public:
-  void init(AttrType type, int length) { attr_comparator_.init(type, length); }
+  void init(AttrType type, int length) { attr_comparator_.init(1, 0, &type, &length); }
+
+  void init(bool unique, int attr_num, int *field_id, AttrType *type, int *length)
+  {
+    attr_comparator_.init(attr_num, field_id, type, length);
+    unique_ = unique;
+  }
 
   const AttrComparator &attr_comparator() const { return attr_comparator_; }
 
@@ -113,6 +156,7 @@ public:
   }
 
 private:
+  bool unique_;
   AttrComparator attr_comparator_;
 };
 
@@ -123,23 +167,65 @@ private:
 class AttrPrinter
 {
 public:
-  void init(AttrType type, int length)
+  void init(int attr_num, AttrType *type, int *length)
   {
-    attr_type_   = type;
-    attr_length_ = length;
+    for(int i=0; i<attr_num; i++){
+      attr_type_.emplace_back(type[i]);
+      attr_length_.emplace_back(length[i]);
+    }
   }
 
-  int attr_length() const { return attr_length_; }
+  int attr_length() const {
+    int l = 0;
+    for(int i=0;i<attr_length_.size();i++){
+      l+=attr_length_[i];
+    }
+    return l;
+  }
 
   string operator()(const char *v) const
   {
-    Value value(attr_type_, const_cast<char *>(v), attr_length_);
-    return value.to_string();
+    int offset = 0;
+    std::string st;
+    for (size_t idx = 0; idx < attr_type_.size(); idx++) {
+      switch (attr_type_[idx]) {
+        case INTS:
+        case DATES: {
+          st += std::to_string(*(int *)(v + offset));
+          st += ",";
+          offset += attr_length_[idx];
+          break;
+        }
+        case FLOATS: {
+          st += std::to_string(*(float *)(v + offset));
+          st += ",";
+          offset += attr_length_[idx];
+          break;
+        }
+        case CHARS: {
+          std::string str;
+          for (int i = 0; i < attr_length_[idx]; i++) {
+            if (v[i] == 0) {
+              break;
+            }
+            str.push_back(v[i]);
+          }
+          st += str;
+          st += ",";
+          break;
+        }
+        default: {
+          ASSERT(false, "unknown attr type. %d", attr_type_);
+        }
+      }
+    }
+    st += " ";
+    return st;
   }
 
 private:
-  AttrType attr_type_;
-  int      attr_length_;
+  std::vector<AttrType> attr_type_;
+  std::vector<int> attr_length_;
 };
 
 /**
@@ -149,7 +235,7 @@ private:
 class KeyPrinter
 {
 public:
-  void init(AttrType type, int length) { attr_printer_.init(type, length); }
+  void init(int attr_num, AttrType *type, int *length) { attr_printer_.init(attr_num, type, length); }
 
   const AttrPrinter &attr_printer() const { return attr_printer_; }
 
@@ -180,12 +266,16 @@ struct IndexFileHeader
     memset(this, 0, sizeof(IndexFileHeader));
     root_page = BP_INVALID_PAGE_NUM;
   }
-  PageNum  root_page;          ///< 根节点在磁盘中的页号
-  int32_t  internal_max_size;  ///< 内部节点最大的键值对数
-  int32_t  leaf_max_size;      ///< 叶子节点最大的键值对数
-  int32_t  attr_length;        ///< 键值的长度
-  int32_t  key_length;         ///< attr length + sizeof(RID)
-  AttrType attr_type;          ///< 键值的类型
+  PageNum  root_page;          
+  int32_t  internal_max_size;  
+  int32_t  leaf_max_size;
+  int32_t  attr_num;      
+  int32_t  attr_length[16];
+  int32_t  unique;
+  int32_t  attr_offset[16];
+  int32_t  field_id[16];
+  int32_t  key_length;         
+  AttrType attr_type[16]; 
 
   const string to_string() const
   {
@@ -193,7 +283,7 @@ struct IndexFileHeader
 
     ss << "attr_length:" << attr_length << ","
        << "key_length:" << key_length << ","
-       << "attr_type:" << attr_type_to_string(attr_type) << ","
+       << "attr_type:" << attr_type << ","
        << "root_page:" << root_page << ","
        << "internal_max_size:" << internal_max_size << ","
        << "leaf_max_size:" << leaf_max_size << ";";
@@ -466,11 +556,10 @@ public:
    * @param internal_max_size 内部节点最大大小
    * @param leaf_max_size 叶子节点最大大小
    */
-  RC create(LogHandler &log_handler, BufferPoolManager &bpm, const char *file_name, AttrType attr_type, int attr_length,
-      int internal_max_size = -1, int leaf_max_size = -1);
-  RC create(LogHandler &log_handler, DiskBufferPool &buffer_pool, AttrType attr_type, int attr_length,
-      int internal_max_size = -1, int leaf_max_size = -1);
-
+  RC create(LogHandler &log_handler, BufferPoolManager &bpm, const char *file_name, AttrType attr_type, int attr_length, int internal_max_size = -1, int leaf_max_size = -1);
+  RC create(LogHandler &log_handler, DiskBufferPool &buffer_pool, AttrType attr_type, int attr_length, int internal_max_size = -1, int leaf_max_size = -1);
+  //RC create(const char *file_name, AttrType attr_type, int attr_length, int internal_max_size = -1, int leaf_max_size = -1);
+  RC create(LogHandler &log_handler, BufferPoolManager &bpm, const char *file_name, const bool unique, const std::vector<int> &field_ids, const std::vector<const FieldMeta*> &fields, int internal_max_size = -1, int leaf_max_size = -1);
   /**
    * @brief 打开一个B+树
    * @param log_handler 记录日志

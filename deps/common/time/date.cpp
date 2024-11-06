@@ -15,6 +15,7 @@ bool check_dateV2(int year, int month, int day)
 int string_to_date(const std::string &str, int32_t &date)
 {
   int y, m, d;
+  sscanf(str.c_str(), "%d-%d-%d", &y, &m, &d);
   bool b = check_dateV2(y, m, d);
   if (!b)
     return -1;

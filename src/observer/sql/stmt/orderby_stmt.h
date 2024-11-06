@@ -14,7 +14,7 @@ class FieldMeta;
 class OrderByUnit
 {
 public:
-  OrderByUnit(Expression *expr, bool is_asc) : expr_(expr), is_asc_(is_asc) {}
+  OrderByUnit(Expression *expr, bool is_asc) : is_asc_(is_asc), expr_(std::move(expr)) {}
 
   ~OrderByUnit() = default;
 
@@ -26,7 +26,7 @@ public:
 
 private:
   // sort type : true is asc
-  bool                        is_asc_ = true;
+  bool                        is_asc_;
   std::unique_ptr<Expression> expr_;
 };
 

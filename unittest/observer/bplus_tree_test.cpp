@@ -328,9 +328,9 @@ TEST(test_bplus_tree, test_leaf_index_node_handle)
   index_file_header.root_page         = BP_INVALID_PAGE_NUM;
   index_file_header.internal_max_size = 5;
   index_file_header.leaf_max_size     = 5;
-  index_file_header.attr_length       = 4;
+  index_file_header.attr_length[0]    = 4;
   index_file_header.key_length        = 4 + sizeof(RID);
-  index_file_header.attr_type         = AttrType::INTS;
+  index_file_header.attr_type[0]      = AttrType::INTS;
 
   VacuousLogHandler log_handler;
   BufferPoolManager bpm;
@@ -344,10 +344,10 @@ TEST(test_bplus_tree, test_leaf_index_node_handle)
   ASSERT_EQ(RC::SUCCESS,
       tree_handler.create(log_handler,
           *buffer_pool,
-          index_file_header.attr_type,
-          index_file_header.attr_length,
-          index_file_header.internal_max_size,
-          index_file_header.leaf_max_size));
+          index_file_header.attr_type[0],
+          (int)index_file_header.attr_length[0],
+          (int)index_file_header.internal_max_size,
+          (int)index_file_header.leaf_max_size));
   BplusTreeMiniTransaction mtr(tree_handler);
 
   Frame frame;
@@ -409,9 +409,9 @@ TEST(test_bplus_tree, test_internal_index_node_handle)
   index_file_header.root_page         = BP_INVALID_PAGE_NUM;
   index_file_header.internal_max_size = 5;
   index_file_header.leaf_max_size     = 5;
-  index_file_header.attr_length       = 4;
+  index_file_header.attr_length[0]    = 4;
   index_file_header.key_length        = 4 + sizeof(RID);
-  index_file_header.attr_type         = AttrType::INTS;
+  index_file_header.attr_type[0]      = AttrType::INTS;
 
   VacuousLogHandler log_handler;
   BufferPoolManager bpm;
@@ -423,13 +423,14 @@ TEST(test_bplus_tree, test_internal_index_node_handle)
   ASSERT_NE(nullptr, buffer_pool);
 
   BplusTreeHandler tree_handler;
+  
   ASSERT_EQ(RC::SUCCESS,
       tree_handler.create(log_handler,
           *buffer_pool,
-          index_file_header.attr_type,
-          index_file_header.attr_length,
-          index_file_header.internal_max_size,
-          index_file_header.leaf_max_size));
+          index_file_header.attr_type[0],
+          (int)index_file_header.attr_length[0],
+          (int)index_file_header.internal_max_size,
+          (int)index_file_header.leaf_max_size));
   BplusTreeMiniTransaction mtr(tree_handler);
 
   Frame frame;

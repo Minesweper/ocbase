@@ -39,6 +39,27 @@ std::string month_name[] = {"",
     "November",
     "December"};
 
+bool exp2value(Expression *exp, Value &value)
+{
+  if (exp->type() == ExprType::VALUE) {
+    ValueExpr *tmp = static_cast<ValueExpr *>(exp);
+    value          = tmp->get_value();
+    return true;
+  }
+  if (exp->type() == ExprType::ARITHMETIC) {
+    ArithmeticExpr *tmp = static_cast<ArithmeticExpr *>(exp);
+    if (tmp->arithmetic_type() != ArithmeticExpr::Type::NEGATIVE && tmp->left()->type() != ExprType::VALUE) {
+      return false;
+    }
+    ValueExpr *lhs = static_cast<ValueExpr *>(tmp->left().get());
+    if (!lhs->get_neg(value)) {
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
+
 RC FieldExpr::get_value(const Tuple &tuple, Value &value) 
 {
   if (is_first) {

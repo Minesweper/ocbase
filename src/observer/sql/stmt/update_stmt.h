@@ -139,7 +139,7 @@ public:
 
 private:
   Table *table_        = nullptr;
-  std::vector<std::unique_ptr<Expression>> values_; 
-  std::vector<FieldMeta>                   fields_;  
+  std::vector<FieldMeta>                   fields_;
+  std::vector<std::unique_ptr<Expression>> values_;   
   FilterStmt                              *filter_stmt_ = nullptr;
 };

@@ -107,7 +107,7 @@ private:
 
     auto process_one_table = [](std::unique_ptr<LogicalOperator> &prev_oper, Table *table, FilterStmt *fu) {
       std::vector<Field> fields;  
-      std::unique_ptr<LogicalOperator> table_get_oper(new TableGetLogicalOperator(table, fields, ReadWriteMode::READ_ONLY));
+      std::unique_ptr<LogicalOperator> table_get_oper(new TableGetLogicalOperator(table, ReadWriteMode::READ_ONLY, fields));
       std::unique_ptr<LogicalOperator> predicate_oper;
       if (nullptr != fu) {
         if (RC rc = LogicalPlanGenerator::create_plan(fu, predicate_oper); rc != RC::SUCCESS) {
@@ -316,7 +316,7 @@ private:
       const FieldMeta *field_meta = table->table_meta().field(i);
       fields.push_back(Field(table, field_meta));
     }
-    std::unique_ptr<LogicalOperator> table_get_oper(new TableGetLogicalOperator(table, fields, ReadWriteMode::READ_WRITE));
+    std::unique_ptr<LogicalOperator> table_get_oper(new TableGetLogicalOperator(table, ReadWriteMode::READ_WRITE, fields));
 
     std::unique_ptr<LogicalOperator> predicate_oper;
     RC                          rc = create_plan(filter_stmt, predicate_oper);
@@ -357,7 +357,7 @@ private:
       const FieldMeta *field_meta = table->table_meta().field(i);
       fields.push_back(Field(table, field_meta));
     }
-    std::unique_ptr<LogicalOperator> table_get_oper(new TableGetLogicalOperator(table, fields, ReadWriteMode::READ_WRITE));
+    std::unique_ptr<LogicalOperator> table_get_oper(new TableGetLogicalOperator(table, ReadWriteMode::READ_WRITE, fields));
 
     std::unique_ptr<LogicalOperator> predicate_oper;
     RC                          rc = RC::SUCCESS;

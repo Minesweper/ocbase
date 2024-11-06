@@ -119,7 +119,7 @@ RC InsertStmt::check_incomplete_rows(Table *table, const InsertSqlNode &inserts,
   const TableMeta                &table_meta    = table->table_meta();
   const int                       field_num     = table_meta.field_num() - table_meta.sys_field_num();
   const int                       sys_field_num = table_meta.sys_field_num();
-  int                             col_name_num  = inserts.attrs_name.size();
+  //int                             col_name_num  = inserts.attrs_name.size();
   const std::vector<std::string> &col_names     = inserts.attrs_name;
 
   // 记录行中每一列是values中第几个，不存在的为-1
@@ -149,15 +149,15 @@ RC InsertStmt::check_incomplete_rows(Table *table, const InsertSqlNode &inserts,
     for (int i = 0; i < field_num; i++) {
       const FieldMeta *field_meta = table_meta.field(i + sys_field_num);
       if (-1 == col_idx[i]) {
-        // 该列未指定
+        
         if (!field_meta->nullable()) {
           LOG_WARN("field not allow NULL:%s", field_meta->name());
           ;
           return RC::INVALID_ARGUMENT;
         }
       } else {
-        // 指定了值的列，需要检查
-        int            name_idx   = col_idx[i];  // 该列的值是第几个
+        
+        int            name_idx   = col_idx[i];  
         const AttrType field_type = field_meta->type();
         const AttrType value_type = values[name_idx].attr_type();
 

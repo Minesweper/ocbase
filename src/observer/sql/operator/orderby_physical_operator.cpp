@@ -116,7 +116,7 @@ RC OrderByPhysicalOperator::fetch_and_sort_tables()
 RC OrderByPhysicalOperator::next()
 {
 
-  RC rc = RC::SUCCESS;
+  //RC rc = RC::SUCCESS;
   if (ordered_idx_.end() != it_) {
     // NOTE: PAY ATTENTION HERE
 
