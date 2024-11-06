@@ -8,6 +8,8 @@
 build/*
 cmake-build-*/*
 build
+build_debug/*
+deps/3rd/*
 .cache/*
 .DS_Store
 .idea
