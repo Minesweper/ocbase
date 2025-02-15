@@ -925,13 +925,13 @@ RC SysFuncExpr::get_func_data_format_value(const Tuple &tuple, Value &value) con
       switch (cell_format_chars[i]) {
         case 'Y': {
           char tmp[5];
-          sprintf(tmp, "%d", year);
+          snprintf(tmp, sizeof(tmp), "%s", to_string(year).c_str());
           result_date_str += tmp;
           break;
         }
         case 'y': {
           char tmp[5];
-          sprintf(tmp, "%d", year % 100);
+          snprintf(tmp, sizeof(tmp), "%s", to_string(year % 100).c_str());
           if (0 <= (year % 100) && (year % 100) <= 9) {
             result_date_str += "0";
           }
@@ -947,7 +947,7 @@ RC SysFuncExpr::get_func_data_format_value(const Tuple &tuple, Value &value) con
         }
         case 'm': {
           char tmp[3];
-          sprintf(tmp, "%d", month);
+          snprintf(tmp, sizeof(tmp), "%s", to_string(month).c_str());
           if (0 <= month && month <= 9) {
             result_date_str += "0";
           }
@@ -956,7 +956,7 @@ RC SysFuncExpr::get_func_data_format_value(const Tuple &tuple, Value &value) con
         }
         case 'D': {
           char tmp[3];
-          sprintf(tmp, "%d", day);
+          snprintf(tmp, sizeof(tmp), "%s", to_string(day).c_str());
           result_date_str += tmp;
           if (11 <= day && day <= 13) {
             result_date_str += "th";
@@ -984,7 +984,7 @@ RC SysFuncExpr::get_func_data_format_value(const Tuple &tuple, Value &value) con
         }
         case 'd': {
           char tmp[3];
-          sprintf(tmp, "%d", day);
+          snprintf(tmp, sizeof(tmp), "%s", to_string(day).c_str());
           if (0 <= day && day <= 9) {
             result_date_str += "0";
           }
@@ -1013,11 +1013,11 @@ RC SysFuncExpr::check_param_type_and_number() const
         rc = RC::INVALID_ARGUMENT;
     } break;
     case SYS_FUNC_ROUND: {
-      // 参数可以为一个或两个,第一个参数的结果类型 必须为 floats 或 double
+      
       if ((params_.size() != 1 && params_.size() != 2) ||
           (params_[0]->value_type() != FLOATS && params_[0]->value_type() != DOUBLES))
         rc = RC::INVALID_ARGUMENT;
-      // 如果有第二个参数，则类型必须为 INT
+       
       if (params_.size() == 2) {
         if (params_[1]->value_type() != INTS) {
           rc = RC::INVALID_ARGUMENT;
