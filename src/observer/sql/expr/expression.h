@@ -890,7 +890,7 @@ public:
 
   RC get_value(const Tuple &tuple, Value &value) override
   {
-    if (cur_idx_ >= exprs_.size()) {
+    if (cur_idx_ >= (int)exprs_.size()) {
       return RC::RECORD_EOF;
     }
     return exprs_[const_cast<int &>(cur_idx_)++]->get_value(tuple, value);

@@ -477,11 +477,11 @@ public:
       return RC::INTERNAL;
     }
     // field_results_ 数组的下标从0开始，aggr_results_ 的下标从 field_results_.size() 开始
-    if (index < 0 || index >= aggr_results_.size() + field_results_.size()) {
+    if (index < 0 || index >= (int)(aggr_results_.size() + field_results_.size())) {
       return RC::NOTFOUND;
     }
 
-    if (index < field_results_.size()) {
+    if (index < (int)field_results_.size()) {
       cell = field_results_[index].result();
     } else {
       cell = aggr_results_[index - field_results_.size()].result();
@@ -525,7 +525,7 @@ public:
     // 找不到再根据别名从聚集函数表达式里面找
     // return find_cell(std::string(spec.alias()), cell,index);
     index = find_agg_index_by_name(std::string(spec.alias()));
-    if (index < 0 || index >= aggr_results_.size()) {
+    if (index < 0 || index >= (int)(aggr_results_.size())) {
       return RC::NOTFOUND;
     }
     cell = aggr_results_[index].result();

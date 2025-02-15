@@ -879,7 +879,7 @@ RC SysFuncExpr::get_func_round_value(const Tuple &tuple, Value &value) const
       // std::cout << "After: " << std::setprecision(12) << f << std::endl;
       return d;
     };
-    *(uint32_t *)&cell_float += 1;
+    cell_float += 1;
     cell_float = inner_round(cell_float, cell_precision);
     // std::cout << cell_float << std::endl;
     value.set_float(cell_float);

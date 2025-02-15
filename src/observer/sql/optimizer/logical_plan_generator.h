@@ -299,7 +299,7 @@ private:
   static RC create_plan(InsertStmt* insert_stmt, std::unique_ptr<LogicalOperator>& logical_operator) {
     Table                *table = insert_stmt->table();
     std::vector<std::vector<Value>> values;
-    for (int i = 0; i < insert_stmt->values().size(); ++i) {
+    for (int i = 0; i < (int)(insert_stmt->values().size()); ++i) {
       values.emplace_back(insert_stmt->values()[i]);
     }
 
