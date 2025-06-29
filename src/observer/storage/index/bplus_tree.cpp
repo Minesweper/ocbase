@@ -887,7 +887,7 @@ RC BplusTreeHandler::create(LogHandler &log_handler,
     return RC::NOMEM;
   }
 
-  key_comparator_.init(false, 1, 0, file_header->attr_type, file_header->attr_length);
+  key_comparator_.init(file_header->attr_type[0], file_header->attr_length[0]);
   key_printer_.init(1, file_header->attr_type, file_header->attr_length);
 
   /*
